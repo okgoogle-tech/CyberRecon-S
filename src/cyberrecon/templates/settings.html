@@ -4,15 +4,19 @@
 {% block title %}Settings | CyberRecon{% endblock %}
 
 {% block content %}
-<div class="settings-page-shell" style="padding-top: var(--space-8); padding-bottom: var(--space-20); max-width: 860px; margin-inline: auto;">
+<div class="settings-page-shell"
+    style="padding-top: var(--space-8); padding-bottom: var(--space-20); max-width: 860px; margin-inline: auto;">
 
     <!-- Header Strip -->
     <header class="cmd-header" style="margin-bottom: var(--space-6);">
-        <div class="cmd-eyebrow" style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--color-mint); font-family: var(--font-mono); text-transform: uppercase;">
-            <span class="cmd-eyebrow-pulse" aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: var(--color-mint);"></span>
+        <div class="cmd-eyebrow"
+            style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--color-mint); font-family: var(--font-mono); text-transform: uppercase;">
+            <span class="cmd-eyebrow-pulse" aria-hidden="true"
+                style="width: 7px; height: 7px; border-radius: 50%; background: var(--color-mint);"></span>
             USER PREFERENCES
         </div>
-        <h1 class="cmd-title" style="font-size: var(--text-3xl); font-weight: 800; color: var(--text-primary); margin: 4px 0 6px 0;">
+        <h1 class="cmd-title"
+            style="font-size: var(--text-3xl); font-weight: 800; color: var(--text-primary); margin: 4px 0 6px 0;">
             Platform <span>Settings</span>
         </h1>
         <p class="cmd-subtitle" style="font-size: var(--text-sm); color: var(--text-muted); margin: 0;">
@@ -22,61 +26,82 @@
 
     <!-- Feedback Alerts -->
     {% if pw_success %}
-    <div class="card" style="border-left: 3px solid var(--color-mint); padding: 14px 18px; margin-bottom: 20px; background: var(--color-mint-subtle); color: var(--color-mint); font-size: 13.5px;">
+    <div class="card"
+        style="border-left: 3px solid var(--color-mint); padding: 14px 18px; margin-bottom: 20px; background: var(--color-mint-subtle); color: var(--color-mint); font-size: 13.5px;">
         ✓ {{ pw_success }}
     </div>
     {% endif %}
     {% if pw_error %}
-    <div class="card" style="border-left: 3px solid var(--sev-critical); padding: 14px 18px; margin-bottom: 20px; background: rgba(239,68,68,0.1); color: var(--sev-critical); font-size: 13.5px;">
+    <div class="card"
+        style="border-left: 3px solid var(--sev-critical); padding: 14px 18px; margin-bottom: 20px; background: rgba(239,68,68,0.1); color: var(--sev-critical); font-size: 13.5px;">
         ✕ {{ pw_error }}
     </div>
     {% endif %}
     {% if account_delete_error %}
-    <div class="card" style="border-left: 3px solid var(--sev-critical); padding: 14px 18px; margin-bottom: 20px; background: rgba(239,68,68,0.1); color: var(--sev-critical); font-size: 13.5px;">
+    <div class="card"
+        style="border-left: 3px solid var(--sev-critical); padding: 14px 18px; margin-bottom: 20px; background: rgba(239,68,68,0.1); color: var(--sev-critical); font-size: 13.5px;">
         ✕ {{ account_delete_error }}
     </div>
     {% endif %}
 
     <!-- Settings Navigation Tabs -->
-    <div class="settings-nav-tabs" style="display: flex; gap: 6px; border-bottom: 1px solid var(--border-hairline); margin-bottom: 24px;">
-        <button type="button" class="report-tab-btn {% if not active_tab or active_tab == 'profile' %}active{% endif %}" data-tab="tab-profile">Profile</button>
-        <button type="button" class="report-tab-btn {% if active_tab == 'appearance' %}active{% endif %}" data-tab="tab-appearance">Appearance</button>
-        <button type="button" class="report-tab-btn {% if active_tab == 'defaults' %}active{% endif %}" data-tab="tab-defaults">Scan Defaults</button>
-        <button type="button" class="report-tab-btn {% if active_tab == 'password' %}active{% endif %}" data-tab="tab-password">Password</button>
-        <button type="button" class="report-tab-btn {% if active_tab == 'data' %}active{% endif %}" data-tab="tab-data">Data &amp; Privacy</button>
+    <div class="settings-nav-tabs"
+        style="display: flex; gap: 6px; border-bottom: 1px solid var(--border-hairline); margin-bottom: 24px;">
+        <button type="button" class="report-tab-btn {% if not active_tab or active_tab == 'profile' %}active{% endif %}"
+            data-tab="tab-profile">Profile</button>
+        <button type="button" class="report-tab-btn {% if active_tab == 'appearance' %}active{% endif %}"
+            data-tab="tab-appearance">Appearance</button>
+        <button type="button" class="report-tab-btn {% if active_tab == 'defaults' %}active{% endif %}"
+            data-tab="tab-defaults">Scan Defaults</button>
+        <button type="button" class="report-tab-btn {% if active_tab == 'password' %}active{% endif %}"
+            data-tab="tab-password">Password</button>
+        <button type="button" class="report-tab-btn {% if active_tab == 'data' %}active{% endif %}"
+            data-tab="tab-data">Data &amp; Privacy</button>
     </div>
 
     <!-- 1. PROFILE PANE -->
-    <section id="tab-profile" class="settings-pane card" style="padding: 24px; {% if active_tab and active_tab != 'profile' %}display: none;{% endif %}">
-        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">Account Profile</h2>
+    <section id="tab-profile" class="settings-pane card"
+        style="padding: 24px; {% if active_tab and active_tab != 'profile' %}display: none;{% endif %}">
+        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">Account Profile
+        </h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
             <div>
-                <label style="display: block; font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); margin-bottom: 6px;">USERNAME</label>
-                <div style="font-family: var(--font-mono); font-size: 14px; color: var(--text-primary); padding: 10px 14px; background: var(--surface-raised); border: 1px solid var(--border-hairline); border-radius: var(--radius-xs);">
+                <label
+                    style="display: block; font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); margin-bottom: 6px;">USERNAME</label>
+                <div
+                    style="font-family: var(--font-mono); font-size: 14px; color: var(--text-primary); padding: 10px 14px; background: var(--surface-raised); border: 1px solid var(--border-hairline); border-radius: var(--radius-xs);">
                     {{ user.username }}
                 </div>
             </div>
             <div>
-                <label style="display: block; font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); margin-bottom: 6px;">EMAIL ADDRESS</label>
-                <div style="font-family: var(--font-mono); font-size: 14px; color: var(--text-primary); padding: 10px 14px; background: var(--surface-raised); border: 1px solid var(--border-hairline); border-radius: var(--radius-xs);">
+                <label
+                    style="display: block; font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); margin-bottom: 6px;">EMAIL
+                    ADDRESS</label>
+                <div
+                    style="font-family: var(--font-mono); font-size: 14px; color: var(--text-primary); padding: 10px 14px; background: var(--surface-raised); border: 1px solid var(--border-hairline); border-radius: var(--radius-xs);">
                     {{ user.email }}
                 </div>
             </div>
         </div>
         <div style="font-size: 12px; color: var(--text-muted);">
-            Account created: <strong style="font-family: var(--font-mono); color: var(--text-primary);">{{ user.created_at if user.created_at else 'Active' }}</strong> &bull; Tenant Isolation: <span style="color: var(--color-mint);">Active</span>
+            Account created: <strong style="font-family: var(--font-mono); color: var(--text-primary);">{{
+                user.created_at if user.created_at else 'Active' }}</strong> &bull; Tenant Isolation: <span
+                style="color: var(--color-mint);">Active</span>
         </div>
     </section>
 
     <!-- 2. APPEARANCE PANE -->
-    <section id="tab-appearance" class="settings-pane card" style="padding: 24px; {% if active_tab != 'appearance' %}display: none;{% endif %}">
-        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Interface Appearance</h2>
+    <section id="tab-appearance" class="settings-pane card"
+        style="padding: 24px; {% if active_tab != 'appearance' %}display: none;{% endif %}">
+        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Interface
+            Appearance</h2>
         <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 20px;">
             Customize your visual theme. CyberRecon supports deep ink dark mode and high-contrast light mode.
         </p>
 
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 480px;">
-            <button type="button" class="theme-choice-btn" id="theme-btn-dark" onclick="setAppTheme('dark')" style="padding: 16px; border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); background: #070c14; text-align: left; cursor: pointer;">
+            <button type="button" class="theme-choice-btn" id="theme-btn-dark" onclick="setAppTheme('dark')"
+                style="padding: 16px; border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); background: #070c14; text-align: left; cursor: pointer;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <strong style="color: #f1f5f9; font-size: 14px;">Dark Ink (Default)</strong>
                     <span style="width: 12px; height: 12px; border-radius: 50%; background: var(--color-mint);"></span>
@@ -84,7 +109,8 @@
                 <span style="font-size: 12px; color: #94a3b8;">Deep navy-black surfaces with signal mint accents.</span>
             </button>
 
-            <button type="button" class="theme-choice-btn" id="theme-btn-light" onclick="setAppTheme('light')" style="padding: 16px; border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); background: #f8fafc; text-align: left; cursor: pointer;">
+            <button type="button" class="theme-choice-btn" id="theme-btn-light" onclick="setAppTheme('light')"
+                style="padding: 16px; border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); background: #f8fafc; text-align: left; cursor: pointer;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <strong style="color: #0f172a; font-size: 14px;">Clean Light</strong>
                     <span style="width: 12px; height: 12px; border-radius: 50%; background: #059669;"></span>
@@ -95,24 +121,32 @@
     </section>
 
     <!-- 3. SCAN DEFAULTS PANE -->
-    <section id="tab-defaults" class="settings-pane card" style="padding: 24px; {% if active_tab != 'defaults' %}display: none;{% endif %}">
-        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Assessment Presets</h2>
+    <section id="tab-defaults" class="settings-pane card"
+        style="padding: 24px; {% if active_tab != 'defaults' %}display: none;{% endif %}">
+        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Assessment
+            Presets</h2>
         <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 20px;">
             These defaults automatically prefill the New Assessment workspace.
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 16px; max-width: 520px;">
             <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">Default Scan Profile</label>
-                <select id="pref-default-profile" class="cmd-select" style="width: 100%; padding: 8px 12px;" onchange="saveScanPref('profile', this.value)">
+                <label
+                    style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">Default
+                    Scan Profile</label>
+                <select id="pref-default-profile" class="cmd-select" style="width: 100%; padding: 8px 12px;"
+                    onchange="saveScanPref('profile', this.value)">
                     <option value="quick">Quick Check (Core 6 transport &amp; session checks)</option>
                     <option value="baseline" selected>Full Baseline (All 18 security checks)</option>
                 </select>
             </div>
 
             <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">Default Request Timeout</label>
-                <select id="pref-default-timeout" class="cmd-select" style="width: 100%; padding: 8px 12px;" onchange="saveScanPref('timeout', this.value)">
+                <label
+                    style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">Default
+                    Request Timeout</label>
+                <select id="pref-default-timeout" class="cmd-select" style="width: 100%; padding: 8px 12px;"
+                    onchange="saveScanPref('timeout', this.value)">
                     <option value="5">5 Seconds (Ultra fast)</option>
                     <option value="10" selected>10 Seconds (Recommended)</option>
                     <option value="30">30 Seconds (Slow / heavily loaded endpoints)</option>
@@ -122,72 +156,105 @@
     </section>
 
     <!-- 4. PASSWORD CHANGE PANE -->
-    <section id="tab-password" class="settings-pane card" style="padding: 24px; {% if active_tab != 'password' %}display: none;{% endif %}">
-        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Change Password</h2>
+    <section id="tab-password" class="settings-pane card"
+        style="padding: 24px; {% if active_tab != 'password' %}display: none;{% endif %}">
+        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Change Password
+        </h2>
         <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 20px;">
             Update your account password. Must contain at least 8 characters.
         </p>
 
-        <form method="POST" action="{{ url_for('settings_view') }}" style="max-width: 440px; display: flex; flex-direction: column; gap: 14px;">
+        <form method="POST" action="{{ url_for('settings_view') }}"
+            style="max-width: 440px; display: flex; flex-direction: column; gap: 14px;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="action" value="change_password">
 
             <div>
-                <label for="current_password" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Current Password</label>
-                <input type="password" id="current_password" name="current_password" required class="cmd-select" style="width: 100%; padding: 8px 12px;">
+                <label for="current_password"
+                    style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Current
+                    Password</label>
+                <input type="password" id="current_password" name="current_password" required class="cmd-select"
+                    style="width: 100%; padding: 8px 12px;">
             </div>
 
             <div>
-                <label for="new_password" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">New Password (Min 8 chars)</label>
-                <input type="password" id="new_password" name="new_password" required minlength="8" class="cmd-select" style="width: 100%; padding: 8px 12px;">
+                <label for="new_password"
+                    style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">New
+                    Password (Min 8 chars)</label>
+                <input type="password" id="new_password" name="new_password" required minlength="8" class="cmd-select"
+                    style="width: 100%; padding: 8px 12px;">
             </div>
 
             <div>
-                <label for="confirm_password" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Confirm New Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" required minlength="8" class="cmd-select" style="width: 100%; padding: 8px 12px;">
+                <label for="confirm_password"
+                    style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Confirm
+                    New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required minlength="8"
+                    class="cmd-select" style="width: 100%; padding: 8px 12px;">
             </div>
 
-            <button type="submit" class="btn-primary" style="padding: 9px 18px; font-size: 13px; align-self: flex-start; margin-top: 6px;">
+            <button type="submit" class="btn-primary"
+                style="padding: 9px 18px; font-size: 13px; align-self: flex-start; margin-top: 6px;">
                 Update Password
             </button>
         </form>
 
         <!-- Forgot Password Gap Disclosure -->
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-hairline); font-size: 12.5px; color: var(--text-dim); line-height: 1.5;">
-            <strong>Self-Service Password Reset:</strong> In accordance with local deployment rules, email-based password reset ("Forgot Password") is currently disabled because an outbound SMTP relay is not provisioned in this environment. Passwords can be changed above while signed in.
+        <div
+            style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-hairline); font-size: 12.5px; color: var(--text-dim); line-height: 1.5;">
+            <strong>Self-Service Password Reset:</strong> In accordance with local deployment rules, email-based
+            password reset ("Forgot Password") is currently disabled because an outbound SMTP relay is not provisioned
+            in this environment. Passwords can be changed above while signed in.
         </div>
     </section>
 
     <!-- 5. DATA & PRIVACY PANE -->
-    <section id="tab-data" class="settings-pane card" style="padding: 24px; {% if active_tab != 'data' %}display: none;{% endif %}">
-        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Data Sovereignty &amp; Account Control</h2>
+    <section id="tab-data" class="settings-pane card"
+        style="padding: 24px; {% if active_tab != 'data' %}display: none;{% endif %}">
+        <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Data Sovereignty
+            &amp; Account Control</h2>
         <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px;">
             Export all assessment telemetry or permanently purge your account and database records.
         </p>
 
         <!-- Export Data Block -->
-        <div style="background: var(--surface-raised); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div
+            style="background: var(--surface-raised); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
             <div>
-                <strong style="color: var(--text-primary); font-size: 14px; display: block; margin-bottom: 2px;">Export Account Telemetry</strong>
-                <span style="color: var(--text-muted); font-size: 12.5px;">Download a complete JSON archive of all your historical scans, targets, and findings.</span>
+                <strong style="color: var(--text-primary); font-size: 14px; display: block; margin-bottom: 2px;">Export
+                    Account Telemetry</strong>
+                <span style="color: var(--text-muted); font-size: 12.5px;">Download a complete JSON archive of all your
+                    historical scans, targets, and findings.</span>
             </div>
-            <a href="{{ url_for('settings_export_archive') }}" class="btn-subtle" style="padding: 8px 14px; font-size: 13px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <a href="{{ url_for('settings_export_archive') }}" class="btn-subtle"
+                style="padding: 8px 14px; font-size: 13px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
                 Export JSON Archive
             </a>
         </div>
 
         <!-- Danger Zone: Delete Account -->
-        <div style="border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.03); border-radius: var(--radius-sm); padding: 18px;">
-            <strong style="color: var(--sev-critical); font-size: 14px; display: block; margin-bottom: 4px;">Danger Zone: Delete Account</strong>
+        <div
+            style="border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.03); border-radius: var(--radius-sm); padding: 18px;">
+            <strong style="color: var(--sev-critical); font-size: 14px; display: block; margin-bottom: 4px;">Danger
+                Zone: Delete Account</strong>
             <p style="color: var(--text-muted); font-size: 12.5px; line-height: 1.5; margin-bottom: 14px;">
-                Permanently deletes your user account, session records, and all historical scans. This action is irreversible.
+                Permanently deletes your user account, session records, and all historical scans. This action is
+                irreversible.
             </p>
 
-            <form method="POST" action="{{ url_for('settings_delete_account_action') }}" onsubmit="return confirm('Are you absolutely sure you want to permanently delete your account and all assessment records?');" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <form method="POST" action="{{ url_for('settings_delete_account_action') }}"
+                onsubmit="return confirm('Are you absolutely sure you want to permanently delete your account and all assessment records?');"
+                style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <input type="password" name="password" placeholder="Confirm password to delete" required class="cmd-select" style="padding: 8px 12px; min-width: 220px;">
-                <button type="submit" class="btn-primary" style="background: var(--sev-critical); border-color: var(--sev-critical); color: #fff; padding: 8px 14px; font-size: 13px;">
+                <input type="password" name="password" placeholder="Confirm password to delete" required
+                    class="cmd-select" style="padding: 8px 12px; min-width: 220px;">
+                <button type="submit" class="btn-primary"
+                    style="background: var(--sev-critical); border-color: var(--sev-critical); color: #fff; padding: 8px 14px; font-size: 13px;">
                     Permanently Delete Account
                 </button>
             </form>
@@ -199,30 +266,30 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    var tabs = document.querySelectorAll('.settings-nav-tabs .report-tab-btn');
-    var panes = document.querySelectorAll('.settings-pane');
+    document.addEventListener('DOMContentLoaded', function () {
+        var tabs = document.querySelectorAll('.settings-nav-tabs .report-tab-btn');
+        var panes = document.querySelectorAll('.settings-pane');
 
-    tabs.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var tabId = this.getAttribute('data-tab');
-            tabs.forEach(function (t) { t.classList.remove('active'); });
-            panes.forEach(function (p) { p.style.display = 'none'; });
+        tabs.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var tabId = this.getAttribute('data-tab');
+                tabs.forEach(function (t) { t.classList.remove('active'); });
+                panes.forEach(function (p) { p.style.display = 'none'; });
 
-            this.classList.add('active');
-            var pane = document.getElementById(tabId);
-            if (pane) pane.style.display = 'block';
+                this.classList.add('active');
+                var pane = document.getElementById(tabId);
+                if (pane) pane.style.display = 'block';
+            });
         });
     });
-});
 
-function setAppTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('cyberrecon_theme', theme);
-}
+    function setAppTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('cyberrecon_theme', theme);
+    }
 
-function saveScanPref(key, value) {
-    localStorage.setItem('cyberrecon_pref_' + key, value);
-}
+    function saveScanPref(key, value) {
+        localStorage.setItem('cyberrecon_pref_' + key, value);
+    }
 </script>
 {% endblock %}

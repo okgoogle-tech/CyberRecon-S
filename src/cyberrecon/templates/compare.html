@@ -141,9 +141,7 @@
 
                 <!-- Left: Delta Overview -->
                 <div>
-                    <span
-                        style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); text-transform: uppercase;">SECURITY
-                        POSTURE SHIFT</span>
+                    <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); text-transform: uppercase;">SECURITY POSTURE SHIFT</span>
                     <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 4px;">
                         <span
                             style="font-size: 32px; font-weight: 800; font-family: var(--font-mono); color: {% if score_delta > 0 %}var(--color-mint){% elif score_delta < 0 %}var(--sev-critical){% else %}var(--text-primary){% endif %};">
@@ -166,12 +164,8 @@
                             style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">Resolved</span>
                     </div>
                     <div style="text-align: center;">
-                        <span
-                            style="display: block; font-size: 24px; font-weight: 800; font-family: var(--font-mono); color: var(--sev-high);">{{
-                            comparison.summary.new }}</span>
-                        <span
-                            style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">New
-                            Risks</span>
+                        <span style="display: block; font-size: 24px; font-weight: 800; font-family: var(--font-mono); color: var(--sev-high);">{{ comparison.summary.new }}</span>
+                        <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">New Risks</span>
                     </div>
                     <div style="text-align: center;">
                         <span
@@ -192,10 +186,8 @@
             style="border: 1px solid var(--border-hairline); border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-6);">
             <div
                 style="padding: 16px 20px; border-bottom: 1px solid var(--border-hairline); background: var(--surface-raised);">
-                <h2 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px 0;">Check
-                    Transition Matrix (18 Checks)</h2>
-                <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Evaluation state transitions across all
-                    18 security checks between the two audits.</p>
+                <h2 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px 0;">Check Transition Matrix (18 Checks)</h2>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Evaluation state transitions across all 18 security checks between the two audits.</p>
             </div>
 
             <div style="overflow-x: auto; width: 100%;">
