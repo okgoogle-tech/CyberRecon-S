@@ -4,13 +4,14 @@ import re
 import secrets
 import sqlite3
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from flask import (
     Flask,
+    jsonify,
     make_response,
     redirect,
     render_template,
@@ -27,6 +28,15 @@ from werkzeug.security import (
 from cyberrecon.scanner.assessment import run_assessment
 from cyberrecon.scanner.comparison import compare_assessments
 from cyberrecon.scanner.security_analysis import SECURITY_CHECK_COUNT
+from cyberrecon.scanner.scoring import (
+    CHECK_REGISTRY,
+    CATEGORY_CAPS,
+    GRADE_THRESHOLDS,
+    SCORE_VERSION,
+    SEVERITY_TIERS,
+    calculate_posture_score,
+    get_category_summary,
+)
 
 from cyberrecon.storage import (
     create_user,
@@ -36,8 +46,15 @@ from cyberrecon.storage import (
     get_scan_history,
     get_user_by_email,
     get_user_by_username,
+    get_user_by_id,
     initialize_database,
     save_assessment,
+    delete_assessment_by_id,
+    bulk_delete_assessments,
+    update_user_password,
+    export_user_data,
+    delete_user_account,
+    get_user_targets_summary,
 )
 
 
@@ -110,12 +127,16 @@ def get_secret_key():
 def login_required(view_function):
     """
     Require an authenticated CyberRecon session.
+    Returns 401 JSON for /api/ endpoints and redirects to login for HTML pages.
     """
 
     @wraps(view_function)
     def wrapped_view(*args, **kwargs):
 
         if session.get("user_id") is None:
+            if request.path.startswith("/api/"):
+                return jsonify({"error": "Unauthorized. Please authenticate.", "status": 401}), 401
+
             return redirect(
                 url_for(
                     "login",
@@ -134,23 +155,39 @@ def login_required(view_function):
 def is_safe_local_redirect(target):
     """
     Permit only local application redirects.
+    Prevents open redirects via external URLs, protocol-relative URLs (//evil.com),
+    javascript: URIs, backslashes (/\\evil.com), or control characters.
     """
-
-    if not target:
+    if not target or not isinstance(target, str):
         return False
 
-    parsed = urlsplit(target)
+    # Disallow control characters or whitespace
+    if any(c in target for c in ['\r', '\n', '\t', '\0', ' ']):
+        return False
 
+    # Prevent backslash bypass (e.g. /\evil.com, /\\evil.com)
+    if '\\' in target:
+        return False
+
+    # Prevent protocol-relative URLs (e.g. //evil.com)
+    if target.startswith('//'):
+        return False
+
+    # Must strictly start with a single leading slash
+    if not target.startswith('/'):
+        return False
+
+    try:
+        parsed = urlsplit(target)
+    except Exception:
+        return False
+
+    # Must have no scheme (e.g. http:, https:, javascript:, data:)
     if parsed.scheme:
         return False
 
+    # Must have no network location / host
     if parsed.netloc:
-        return False
-
-    if not target.startswith("/"):
-        return False
-
-    if target.startswith("//"):
         return False
 
     return True
@@ -408,6 +445,13 @@ def create_app(test_config=None):
 
     @app.context_processor
     def inject_global_template_values():
+        def versioned_static(filename):
+            file_path = os.path.join(app.static_folder, filename)
+            try:
+                mtime = int(os.path.getmtime(file_path))
+            except Exception:
+                mtime = 1
+            return url_for("static", filename=filename, v=mtime)
 
         return {
             "current_user_id":
@@ -418,6 +462,12 @@ def create_app(test_config=None):
 
             "csrf_token":
                 generate_csrf_token(),
+
+            "versioned_static":
+                versioned_static,
+
+            "asset_version":
+                "2.5.0",
         }
 
 
@@ -429,7 +479,47 @@ def create_app(test_config=None):
     def home():
 
         return render_template(
-            "index.html"
+            "index.html",
+            check_count=len(CHECK_REGISTRY),
+            category_counts=get_category_summary(),
+        )
+
+
+    # =====================================================
+    # ABOUT (Methodology, 18 Checks, Scoring, SSRF, FAQ)
+    # =====================================================
+
+    @app.route("/about")
+    def about():
+
+        return render_template(
+            "about.html",
+            checks=CHECK_REGISTRY,
+            category_counts=get_category_summary(),
+            score_version=SCORE_VERSION,
+            category_caps=CATEGORY_CAPS,
+            severity_tiers=SEVERITY_TIERS,
+            grade_thresholds=GRADE_THRESHOLDS,
+        )
+
+
+    # =====================================================
+    # PRIVACY POLICY & TERMS OF RESPONSIBLE USE
+    # =====================================================
+
+    @app.route("/privacy")
+    def privacy():
+
+        return render_template(
+            "privacy.html"
+        )
+
+
+    @app.route("/terms")
+    def terms():
+
+        return render_template(
+            "terms.html"
         )
 
 
@@ -820,6 +910,14 @@ def create_app(test_config=None):
                 session["user_id"],
             )
 
+            if request.form.get("prg") == "1" or request.args.get("prg") == "1":
+                return redirect(
+                    url_for(
+                        "canonical_assessment_report",
+                        scan_id=assessment["metadata"]["scan_id"],
+                    )
+                )
+
             return render_template(
                 "results.html",
                 **assessment,
@@ -867,10 +965,15 @@ def create_app(test_config=None):
         if date_range not in ("24h", "7d", "30d", "all"):
             date_range = "all"
 
+        target_filter = request.args.get("target", "all").strip()
+        severity_filter = request.args.get("severity", "all").strip()
+
         analytics = (
             get_dashboard_analytics(
                 session["user_id"],
                 date_range=date_range,
+                target_filter=target_filter,
+                severity_filter=severity_filter,
             )
         )
 
@@ -878,7 +981,87 @@ def create_app(test_config=None):
             "dashboard.html",
             analytics=analytics,
             active_range=date_range,
+            target_filter=target_filter,
+            severity_filter=severity_filter,
         )
+
+
+    # =====================================================
+    # DASHBOARD REST APIS (CROSS-FILTERING & ASYNC DATA)
+    # =====================================================
+
+    @app.route("/api/dashboard/summary")
+    @login_required
+    def api_dashboard_summary():
+        user_id = session.get("user_id")
+        date_range = request.args.get("range", "all").strip().lower()
+        target_filter = request.args.get("target", "all").strip()
+        severity_filter = request.args.get("severity", "all").strip()
+
+        valid_ranges = {"24h", "7d", "30d", "all"}
+        valid_severities = {"all", "High", "Medium", "Low", "Info"}
+
+        if date_range not in valid_ranges:
+            return jsonify({"error": "Invalid date range parameter", "valid": list(valid_ranges)}), 400
+
+        if severity_filter not in valid_severities:
+            return jsonify({"error": "Invalid severity filter parameter", "valid": list(valid_severities)}), 400
+
+        if len(target_filter) > 255 or any(c in target_filter for c in ("\r", "\n", "<", ">", '"', "'", "\\")):
+            return jsonify({"error": "Invalid target filter parameter"}), 400
+
+        data = get_dashboard_analytics(
+            user_id,
+            date_range=date_range,
+            target_filter=target_filter,
+            severity_filter=severity_filter,
+        )
+        return jsonify(data)
+
+
+    @app.route("/api/dashboard/timeseries")
+    @login_required
+    def api_dashboard_timeseries():
+        user_id = session.get("user_id")
+        date_range = request.args.get("range", "all").strip().lower()
+        target_filter = request.args.get("target", "all").strip()
+
+        valid_ranges = {"24h", "7d", "30d", "all"}
+        if date_range not in valid_ranges:
+            return jsonify({"error": "Invalid date range parameter", "valid": list(valid_ranges)}), 400
+
+        if len(target_filter) > 255 or any(c in target_filter for c in ("\r", "\n", "<", ">", '"', "'", "\\")):
+            return jsonify({"error": "Invalid target filter parameter"}), 400
+
+        data = get_dashboard_analytics(
+            user_id,
+            date_range=date_range,
+            target_filter=target_filter,
+        )
+        return jsonify({
+            "timeseries": data.get("timeseries_points", []),
+            "date_range": date_range,
+            "target": target_filter,
+        })
+
+
+    @app.route("/api/dashboard/matrix")
+    @login_required
+    def api_dashboard_matrix():
+        user_id = session.get("user_id")
+        target_filter = request.args.get("target", "all").strip()
+
+        if len(target_filter) > 255 or any(c in target_filter for c in ("\r", "\n", "<", ">", '"', "'", "\\")):
+            return jsonify({"error": "Invalid target filter parameter"}), 400
+
+        data = get_dashboard_analytics(
+            user_id,
+            target_filter=target_filter,
+        )
+        return jsonify({
+            "checks": data.get("matrix_checks", []),
+            "matrix": data.get("security_matrix", {}),
+        })
 
 
 
@@ -901,245 +1084,371 @@ def create_app(test_config=None):
 
 
     # =====================================================
-    # ARCHIVED SCAN
+    # CANONICAL ASSESSMENT REPORT & ARCHIVE
     # =====================================================
 
-    @app.route(
-        "/history/<scan_id>"
-    )
-    @app.route(
-        "/scan/<scan_id>"
-    )
+    @app.route("/assessments/<scan_id>")
+    @app.route("/history/<scan_id>")
     @login_required
     def scan_detail(scan_id):
-
-        stored_assessment = (
-            get_scan_by_id(
-                scan_id,
-                session["user_id"],
-            )
-        )
+        user_id = session["user_id"]
+        stored_assessment = get_scan_by_id(scan_id, user_id)
 
         if stored_assessment is None:
+            return render_template("404.html", resource="Assessment"), 404
 
-            return (
-                "Stored assessment not found.",
-                404,
-            )
+        # When a browser navigates to legacy /history/<id>, redirect 301 to canonical /assessments/<id>
+        if request.path.startswith("/history/") and (
+            request.headers.get("Sec-Fetch-Mode") == "navigate"
+            or request.args.get("legacy_redirect") == "1"
+        ):
+            return redirect(f"/assessments/{scan_id}", 301)
+
+        scan_record = stored_assessment["scan"]
+        findings = stored_assessment["findings"]
+        posture_data = calculate_posture_score(findings)
+
+        # Categorize findings into 4 high-level categories
+        cat_map = {
+            "Transport Security": "Transport Security",
+            "Browser Security": "Browser & Headers",
+            "Privacy and Browser Security": "Browser & Headers",
+            "Cross-Origin Security": "Cross-Origin Security",
+            "Information Disclosure": "Session & Disclosure",
+            "Session Security": "Session & Disclosure",
+        }
+
+        grouped_findings = {
+            "Transport Security": [],
+            "Browser & Headers": [],
+            "Cross-Origin Security": [],
+            "Session & Disclosure": [],
+        }
+
+        for f in findings:
+            raw_cat = f.get("category", "")
+            hl_cat = cat_map.get(raw_cat, "Browser & Headers")
+            if hl_cat in grouped_findings:
+                grouped_findings[hl_cat].append(f)
+
+        # Build list of passed checks
+        failed_ids = set(posture_data.get("failed_check_ids", []))
+        passed_checks = [c for c in CHECK_REGISTRY if c["id"] not in failed_ids]
+
+        # Fetch previous scan of the same target for quick compare
+        all_target_scans = [
+            s for s in get_completed_scans(user_id)
+            if s["target"] == scan_record["target"] and s["scan_id"] != scan_id
+        ]
+        previous_scan = all_target_scans[0] if all_target_scans else None
 
         return render_template(
             "scan_detail.html",
-
-            scan=stored_assessment[
-                "scan"
-            ],
-
-            findings=stored_assessment[
-                "findings"
-            ],
+            scan=scan_record,
+            findings=findings,
+            posture_data=posture_data,
+            grouped_findings=grouped_findings,
+            passed_checks=passed_checks,
+            previous_scan=previous_scan,
+            score_version=SCORE_VERSION,
         )
 
 
-    # =====================================================
-    # REPORT
-    # =====================================================
+    # Canonical alias and redirect for old /scan/<id> and /canonical_assessment_report/<id>
+    @app.route("/canonical_assessment_report/<scan_id>")
+    @app.route("/scan/<scan_id>")
+    @login_required
+    def legacy_scan_detail_redirect(scan_id):
+        """Redirect legacy scan URLs to canonical /assessments/<scan_id>."""
+        return redirect(f"/assessments/{scan_id}", 301)
 
-    @app.route(
-        "/history/<scan_id>/report"
-    )
+
+    @app.route("/assessments/<scan_id>/delete", methods=["POST"])
+    @login_required
+    def delete_assessment_route(scan_id):
+        """Delete an individual assessment with CSRF protection."""
+        user_id = session["user_id"]
+        delete_assessment_by_id(scan_id, user_id)
+        return redirect(url_for("history"))
+
+
+    @app.route("/assessments/<scan_id>/export.json")
+    @login_required
+    def export_assessment_json(scan_id):
+        """Download complete assessment details as structured JSON."""
+        user_id = session["user_id"]
+        stored_assessment = get_scan_by_id(scan_id, user_id)
+        if not stored_assessment:
+            return jsonify({"error": "Assessment not found"}), 404
+
+        findings = stored_assessment["findings"]
+        posture_data = calculate_posture_score(findings)
+
+        payload = {
+            "scan_id": scan_id,
+            "target": stored_assessment["scan"]["target"],
+            "metadata": stored_assessment["scan"],
+            "posture": posture_data,
+            "findings": findings,
+            "exported_at": datetime.now(timezone.utc).isoformat(),
+        }
+        res = jsonify(payload)
+        res.headers["Content-Disposition"] = f'attachment; filename="CyberRecon_{scan_id}.json"'
+        return res
+
+
+    @app.route("/history/<scan_id>/report")
+    @app.route("/assessments/<scan_id>/report")
     @login_required
     def assessment_report(scan_id):
-
-        stored_assessment = (
-            get_scan_by_id(
-                scan_id,
-                session["user_id"],
-            )
-        )
-
+        stored_assessment = get_scan_by_id(scan_id, session["user_id"])
         if stored_assessment is None:
+            return render_template("404.html", resource="Report"), 404
 
-            return (
-                "Stored assessment not found.",
-                404,
-            )
-
-        scan_data = (
-            stored_assessment[
-                "scan"
-            ]
-        )
-
-        findings = (
-            stored_assessment[
-                "findings"
-            ]
-        )
-
+        scan_data = stored_assessment["scan"]
+        findings = stored_assessment["findings"]
         severity_summary = {
-            "High": 0,
-            "Medium": 0,
-            "Low": 0,
-            "Info": 0,
+            "High": sum(1 for f in findings if f.get("severity") == "High"),
+            "Medium": sum(1 for f in findings if f.get("severity") == "Medium"),
+            "Low": sum(1 for f in findings if f.get("severity") == "Low"),
+            "Info": sum(1 for f in findings if f.get("severity") == "Info"),
             "Total": len(findings),
         }
 
-        for finding in findings:
-
-            severity = finding.get(
-                "severity"
-            )
-
-            if severity in severity_summary:
-
-                severity_summary[
-                    severity
-                ] += 1
-
-        rendered_report = (
-            render_template(
-                "report.html",
-
-                scan=scan_data,
-
-                findings=findings,
-
-                severity_summary=(
-                    severity_summary
-                ),
-            )
+        rendered_report = render_template(
+            "report.html",
+            scan=scan_data,
+            findings=findings,
+            severity_summary=severity_summary,
         )
 
-        response = make_response(
-            rendered_report
-        )
-
-        filename = (
-            f"CyberRecon_"
-            f"{scan_id}_Report.html"
-        )
-
-        response.headers[
-            "Content-Disposition"
-        ] = (
-            f'attachment; '
-            f'filename="{filename}"'
-        )
-
-        response.headers[
-            "Content-Type"
-        ] = (
-            "text/html; charset=utf-8"
-        )
-
+        response = make_response(rendered_report)
+        filename = f"CyberRecon_{scan_id}_Report.html"
+        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response.headers["Content-Type"] = "text/html; charset=utf-8"
         return response
 
 
     # =====================================================
-    # HISTORICAL COMPARISON
+    # TARGETS DIRECTORY (/targets)
+    # =====================================================
+
+    @app.route("/targets")
+    @login_required
+    def targets_list():
+        user_id = session["user_id"]
+        targets = get_user_targets_summary(user_id)
+        return render_template("targets.html", targets=targets)
+
+
+    # =====================================================
+    # SETTINGS (/settings)
+    # =====================================================
+
+    @app.route("/settings", methods=["GET", "POST"])
+    @login_required
+    def settings_view():
+        user_id = session["user_id"]
+        user = get_user_by_id(user_id)
+        pw_error = None
+        pw_success = None
+        active_tab = request.args.get("tab", "profile")
+
+        if request.method == "POST":
+            action = request.form.get("action", "change_password")
+            if action == "change_password":
+                active_tab = "password"
+                current_pw = request.form.get("current_password", "")
+                new_pw = request.form.get("new_password", "")
+                confirm_pw = request.form.get("confirm_password", "")
+
+                user_creds = get_user_by_email(user["email"])
+                if not user_creds or not check_password_hash(user_creds["password_hash"], current_pw):
+                    pw_error = "Current password is incorrect."
+                elif len(new_pw) < 8:
+                    pw_error = "New password must be at least 8 characters long."
+                elif new_pw != confirm_pw:
+                    pw_error = "New passwords do not match."
+                else:
+                    update_user_password(user["id"], generate_password_hash(new_pw))
+                    pw_success = "Password successfully changed."
+
+        return render_template(
+            "settings.html",
+            user=user,
+            pw_error=pw_error,
+            pw_success=pw_success,
+            active_tab=active_tab,
+        )
+
+
+    @app.route("/settings/export")
+    @login_required
+    def settings_export_archive():
+        data = export_user_data(session["user_id"])
+        if not data:
+            return jsonify({"error": "User not found"}), 404
+        res = jsonify(data)
+        res.headers["Content-Disposition"] = 'attachment; filename="CyberRecon_DataExport.json"'
+        return res
+
+
+    @app.route("/settings/delete-account", methods=["POST"])
+    @login_required
+    def settings_delete_account_action():
+        user = get_user_by_id(session["user_id"])
+        pw = request.form.get("password", "")
+        if not check_password_hash(user["password_hash"], pw):
+            return render_template(
+                "settings.html",
+                user=user,
+                account_delete_error="Incorrect password. Account deletion aborted.",
+                active_tab="data",
+            )
+        delete_user_account(user["id"])
+        session.clear()
+        return redirect(url_for("home"))
+
+
+    @app.route("/history/bulk-delete", methods=["POST"])
+    @login_required
+    def history_bulk_delete_action():
+        scan_ids = request.form.getlist("scan_ids")
+        if scan_ids:
+            bulk_delete_assessments(scan_ids, session["user_id"])
+        return redirect(url_for("history"))
+
+
+    # =====================================================
+    # HISTORICAL COMPARISON (/compare)
     # =====================================================
 
     @app.route("/compare")
     @login_required
     def compare_scans():
+        user_id = session["user_id"]
+        scans = get_completed_scans(user_id)
 
-        user_id = session[
-            "user_id"
-        ]
+        target_filter = request.args.get("target")
+        baseline_id = request.args.get("baseline") or request.args.get("scan_a")
+        current_id = request.args.get("current") or request.args.get("scan_b")
 
-        scans = get_completed_scans(
-            user_id
-        )
+        # Group available scans by target
+        scans_by_target = {}
+        for s in scans:
+            tgt = s["target"]
+            if tgt not in scans_by_target:
+                scans_by_target[tgt] = []
+            scans_by_target[tgt].append(s)
 
-        baseline_id = request.args.get(
-            "baseline"
-        )
+        # Preselect target if query passed
+        if not target_filter and baseline_id:
+            b_scan = get_scan_by_id(baseline_id, user_id)
+            if b_scan:
+                target_filter = b_scan["scan"]["target"]
 
-        current_id = request.args.get(
-            "current"
-        )
+        # Default to first target with 2+ scans if no target passed
+        if not target_filter:
+            for tgt, t_scans in scans_by_target.items():
+                if len(t_scans) >= 2:
+                    target_filter = tgt
+                    break
+
+        available_target_scans = scans_by_target.get(target_filter, []) if target_filter else []
+
+        # Auto-prefill latest 2 scans if baseline/current not explicitly set
+        if target_filter and len(available_target_scans) >= 2 and not (baseline_id and current_id):
+            current_id = available_target_scans[0]["scan_id"]
+            baseline_id = available_target_scans[1]["scan_id"]
 
         comparison = None
         comparison_error = None
+        transition_matrix = []
+        baseline_score = None
+        current_score = None
+        score_delta = 0
 
-        if (
-            baseline_id
-            and current_id
-        ):
+        if baseline_id and current_id:
+            baseline_assessment = get_scan_by_id(baseline_id, user_id)
+            current_assessment = get_scan_by_id(current_id, user_id)
 
-            baseline_assessment = (
-                get_scan_by_id(
-                    baseline_id,
-                    user_id,
-                )
-            )
-
-            current_assessment = (
-                get_scan_by_id(
-                    current_id,
-                    user_id,
-                )
-            )
-
-            if (
-                baseline_assessment
-                is None
-                or current_assessment
-                is None
-            ):
-
-                comparison_error = (
-                    "One or both stored "
-                    "assessments could not "
-                    "be found."
-                )
-
-            elif (
-                baseline_id
-                == current_id
-            ):
-
-                comparison_error = (
-                    "Please select two "
-                    "different assessments."
-                )
-
+            if baseline_assessment is None or current_assessment is None:
+                comparison_error = "One or both stored assessments could not be found."
+            elif baseline_id == current_id:
+                comparison_error = "Please select two different assessments to compare."
             else:
-
                 try:
+                    comparison = compare_assessments(baseline_assessment, current_assessment)
+                    
+                    # Compute scores & transition matrix
+                    baseline_score = calculate_posture_score(baseline_assessment["findings"])
+                    current_score = calculate_posture_score(current_assessment["findings"])
+                    score_delta = current_score["score"] - baseline_score["score"]
 
-                    comparison = (
-                        compare_assessments(
-                            baseline_assessment,
-                            current_assessment,
-                        )
-                    )
+                    b_find_map = {f["finding_code"]: f for f in baseline_assessment["findings"]}
+                    c_find_map = {f["finding_code"]: f for f in current_assessment["findings"]}
+
+                    for chk in CHECK_REGISTRY:
+                        cid = chk["id"]
+                        was_fail = cid in b_find_map
+                        is_fail = cid in c_find_map
+
+                        if was_fail and not is_fail:
+                            st = "Resolved"
+                            bdg = "badge-pass"
+                        elif not was_fail and is_fail:
+                            st = "New"
+                            bdg = "badge-high"
+                        elif was_fail and is_fail:
+                            st = "Persistent"
+                            bdg = "badge-medium"
+                        else:
+                            st = "Pass"
+                            bdg = "badge-subtle"
+
+                        transition_matrix.append({
+                            "id": chk["id"],
+                            "name": chk["name"],
+                            "category": chk["high_level_category"],
+                            "severity": chk["severity"],
+                            "status": st,
+                            "badge": bdg,
+                            "baseline_status": "Fail" if was_fail else "Pass",
+                            "current_status": "Fail" if is_fail else "Pass",
+                        })
 
                 except ValueError as error:
-
-                    comparison_error = str(
-                        error
-                    )
+                    comparison_error = str(error)
 
         return render_template(
             "compare.html",
-
             scans=scans,
-
+            scans_by_target=scans_by_target,
+            target_filter=target_filter,
+            target_scans=available_target_scans,
             comparison=comparison,
-
-            comparison_error=(
-                comparison_error
-            ),
-
-            selected_baseline=(
-                baseline_id
-            ),
-
-            selected_current=(
-                current_id
-            ),
+            comparison_error=comparison_error,
+            selected_baseline=baseline_id,
+            selected_current=current_id,
+            baseline_score=baseline_score,
+            current_score=current_score,
+            score_delta=score_delta,
+            transition_matrix=transition_matrix,
         )
+
+
+    # =====================================================
+    # BRANDED ERROR HANDLERS
+    # =====================================================
+
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template("404.html"), 404
+
+
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        return render_template("500.html"), 500
 
 
     return app

@@ -4,7 +4,7 @@
 {% block title %}New Security Assessment | CyberRecon{% endblock %}
 
 {% block content %}
-<main class="container">
+<div class="workspace-page-shell">
     <section class="workspace-section" style="padding-top: 24px; padding-bottom: 60px;">
 
         <!-- Breadcrumb Navigation -->
@@ -211,6 +211,8 @@
             <div class="workspace-form-col">
                 <form id="assessment-form" method="POST" action="{{ url_for('scan') }}" novalidate>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="prg" value="1">
+                    <input type="hidden" name="authorization_timestamp" id="auth-timestamp-input" value="">
                     <input type="hidden" name="scan_profile" id="hidden-profile-input" value="quick">
                     <input type="hidden" name="request_timeout" id="hidden-timeout-input" value="10">
                     <input type="hidden" name="follow_redirects" id="hidden-redirects-input" value="1">
@@ -705,7 +707,7 @@
                                 <div class="check-item-row" data-check-id="CR-010">
                                     <span class="check-code">CR-010</span>
                                     <span class="check-name">Unsafe Referrer Leaks</span>
-                                    <span class="severity-pill medium">Med</span>
+                                    <span class="severity-pill ">Med</span>
                                 </div>
                                 <div class="check-item-row" data-check-id="CR-011">
                                     <span class="check-code">CR-011</span>
@@ -794,7 +796,7 @@
         </div>
 
     </section>
-</main>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -1497,7 +1499,7 @@
                     runElapsedTimer.textContent = formatElapsed(totalMs);
 
                     return response.text().then(function (htmlText) {
-                        return { status: response.status, ok: response.ok, html: htmlText, durationMs: totalMs };
+                        return { status: response.status, ok: response.ok, html: htmlText, durationMs: totalMs, finalUrl: response.url || '' };
                     });
                 })
                 .then(function (res) {
@@ -1511,19 +1513,25 @@
 
                     // Check if returned error
                     var serverError = doc.querySelector('.auth-error, .target-error-msg, .error-message');
-                    if (serverError && !doc.querySelector('.results-section')) {
+                    if (serverError && !doc.querySelector('.results-section') && !doc.querySelector('.report-layout')) {
                         showFailureState(serverError.textContent.trim());
                         return;
                     }
 
-                    // Extract scan ID from results DOM
+                    // Extract scan ID from response URL or parsed DOM
                     var scanId = '';
-                    var scanIdEl = doc.querySelector('.dashboard-overview .dashboard-card strong');
-                    if (scanIdEl) {
-                        scanId = scanIdEl.textContent.trim();
-                    } else {
-                        var scanIdMatch = res.html.match(/scan_id[^\w]*([A-Za-z0-9_-]+)/) || res.html.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/);
-                        scanId = scanIdMatch ? scanIdMatch[1] : '';
+                    if (res.finalUrl) {
+                        var urlMatch = res.finalUrl.match(/\/assessments\/([A-Za-z0-9_-]+)/);
+                        if (urlMatch) scanId = urlMatch[1];
+                    }
+                    if (!scanId) {
+                        var scanIdEl = doc.querySelector('[data-scan-id], .dashboard-overview .dashboard-card strong');
+                        if (scanIdEl) {
+                            scanId = scanIdEl.getAttribute('data-scan-id') || scanIdEl.textContent.trim();
+                        } else {
+                            var scanIdMatch = res.html.match(/scan_id[^\w]*([A-Za-z0-9_-]+)/) || res.html.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/);
+                            scanId = scanIdMatch ? scanIdMatch[1] : '';
+                        }
                     }
 
                     // Extract real finding counts from results.html
@@ -1619,7 +1627,7 @@
 
             // Link Full Report Button
             if (btnFullReport) {
-                var destinationUrl = data.scanId ? ('/history/' + encodeURIComponent(data.scanId)) : '/history';
+                var destinationUrl = data.scanId ? ('/assessments/' + encodeURIComponent(data.scanId)) : '/dashboard';
                 btnFullReport.setAttribute('href', destinationUrl);
                 btnFullReport.onclick = function (e) {
                     e.preventDefault();

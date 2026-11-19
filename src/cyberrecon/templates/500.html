@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}500 Internal Error | CyberRecon{% endblock %}
+
+{% block content %}
+<main class="container" style="min-height: calc(100vh - 180px); display: flex; align-items: center; justify-content: center; padding: 40px 16px;">
+    <div class="card" style="max-width: 520px; width: 100%; padding: 48px 36px; text-align: center; border: 1px solid var(--border-hairline); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+        
+        <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--sev-critical); letter-spacing: 0.12em; margin-bottom: 12px;">
+            ERROR 500 // ENGINE EXCEPTION
+        </div>
+
+        <h1 style="font-size: 28px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; margin-bottom: 12px;">
+            Diagnostic Analysis Interrupted
+        </h1>
+
+        <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 32px;">
+            An unexpected error occurred while executing the security check registry or rendering telemetry. The application kernel aborted the operation safely.
+        </p>
+
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('dashboard') if current_user_id else url_for('home') }}" class="btn-primary" style="padding: 10px 20px; font-size: 13.5px;">
+                &larr; Safe Recovery to Dashboard
+            </a>
+            <a href="javascript:location.reload()" class="btn-subtle" style="padding: 10px 18px; font-size: 13.5px;">
+                Retry Operation
+            </a>
+        </div>
+    </div>
+</main>
+{% endblock %}

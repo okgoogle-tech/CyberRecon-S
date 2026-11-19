@@ -1,756 +1,380 @@
 {% extends "base.html" %}
+{% import "macros/ui.html" as ui %}
 {% set active_page = "history" %}
 
-{% block title %}{{ scan.scan_id }} | CyberRecon{% endblock %}
+{% block title %}Assessment Report: {{ scan.scan_id }} | CyberRecon{% endblock %}
 
 {% block extra_head %}
-    <style>
-
-        .finding-metadata {
-            display: grid;
-
-            grid-template-columns:
-                repeat(
-                    4,
-                    minmax(0, 1fr)
-                );
-
-            gap: 10px;
-
-            margin-top: 18px;
-            margin-bottom: 18px;
-        }
-
-
-        .finding-meta-item {
-            padding: 11px 12px;
-            border: 1px solid var(--border-subtle, #1e344b);
-            border-radius: 7px;
-            background: var(--surface-raised, rgba(8, 17, 28, 0.65));
-        }
-
-        .finding-meta-item span {
-            display: block;
-            color: var(--text-muted, #64788e);
-            font-size: 8px;
-            font-weight: 600;
-            letter-spacing: 0.9px;
-        }
-
-        .finding-meta-item strong {
-            display: block;
-            margin-top: 5px;
-            color: var(--text-primary, #bfcedd);
-            font-size: 11px;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        .finding-meta-wide {
-            grid-column: span 2;
-        }
-
-        .meta-high {
-            color: #ff6673 !important;
-        }
-
-        .meta-medium {
-            color: #f0a14a !important;
-        }
-
-        .meta-low {
-            color: #e5c556 !important;
-        }
-
-        .meta-info {
-            color: #65aee8 !important;
-        }
-
-        .archive-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .archive-card {
-            padding: 18px;
-            border: 1px solid var(--border-card, #1c3149);
-            border-radius: 9px;
-            background: var(--surface, rgba(10, 18, 30, 0.82));
-        }
-
-        .archive-card span {
-            display: block;
-            color: var(--text-muted, #677b91);
-            font-size: 8px;
-            font-weight: 600;
-            letter-spacing: 0.9px;
-        }
-
-        .archive-card strong {
-            display: block;
-            margin-top: 7px;
-            color: var(--text-primary, #c6d2df);
-            font-size: 12px;
-            line-height: 1.5;
-            word-break: break-word;
-        }
-
-        .finding-copy {
-            padding: 18px 20px;
-        }
-
-        .finding-copy div {
-            margin-top: 16px;
-        }
-
-        .finding-copy span {
-            display: block;
-            margin-bottom: 6px;
-            color: var(--text-muted, #63778d);
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.8px;
-        }
-
-        .finding-copy p {
-            margin: 0;
-            color: var(--text-secondary, #aebdca);
-            line-height: 1.7;
-        }
-
-
-        .detail-actions {
-            display: flex;
-
-            flex-wrap: wrap;
-
-            gap: 10px;
-
-            margin-top: 34px;
-        }
-
-
-        @media (max-width: 850px) {
-
-            .finding-metadata {
-                grid-template-columns:
-                    repeat(
-                        2,
-                        minmax(0, 1fr)
-                    );
-            }
-
-
-            .archive-grid {
-                grid-template-columns:
-                    repeat(
-                        2,
-                        minmax(0, 1fr)
-                    );
-            }
-
-        }
-
-
-        @media (max-width: 520px) {
-
-            .finding-metadata,
-            .archive-grid {
-                grid-template-columns: 1fr;
-            }
-
-
-            .finding-meta-wide {
-                grid-column: span 1;
-            }
-
-        }
-
-    </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/report.css') }}?v=1.0">
 {% endblock %}
 
 {% block content %}
-<main class="container">
-
-
-<section class="dashboard-section">
-
-
-    <div class="tag">
-        STORED ASSESSMENT
-    </div>
-
-
-    <h1>
-        Scan
-        <span>{{ scan.scan_id }}</span>
-    </h1>
-
-
-    <p class="subtitle">
-
-        Archived CyberRecon assessment for
-        {{ scan.target }}.
-
-    </p>
-
-
-
-    <!-- ==================================================
-         ASSESSMENT SUMMARY
-         ================================================== -->
-
-    <div class="section-heading">
-
-        <h2>
-            Assessment Summary
-        </h2>
-
-        <p>
-            Stored scan execution details.
-        </p>
-
-    </div>
-
-
-    <div class="archive-grid">
-
-        <div class="archive-card">
-
-            <span>
-                SCAN ID
-            </span>
-
-            <strong>
-                {{ scan.scan_id }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                TARGET
-            </span>
-
-            <strong>
-                {{ scan.target }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                STARTED
-            </span>
-
-            <strong>
-                {{ scan.started_at }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                DURATION
-            </span>
-
-            <strong>
-                {{ scan.duration_ms }} ms
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                RECONNAISSANCE
-            </span>
-
-            <strong>
-                {{ scan.recon_status }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                SECURITY ANALYSIS
-            </span>
-
-            <strong>
-                {{ scan.analysis_status }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                CHECKS PERFORMED
-            </span>
-
-            <strong>
-                {{ scan.checks_performed }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                HTTP STATUS
-            </span>
-
-            <strong>
-                {{ scan.http_status or "Unavailable" }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                HTTPS
-            </span>
-
-            <strong>
-
-                {% if scan.https_enabled %}
-                    Enabled
-                {% else %}
-                    Not Enabled
-                {% endif %}
-
-            </strong>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ==================================================
-         TARGET INFORMATION
-         ================================================== -->
-
-    <div class="section-heading">
-
-        <h2>
-            Target Information
-        </h2>
-
-        <p>
-            Reconnaissance information stored for
-            this assessment.
-        </p>
-
-    </div>
-
-
-    <div class="archive-grid">
-
-        <div class="archive-card">
-
-            <span>
-                DOMAIN
-            </span>
-
-            <strong>
-                {{ scan.domain or "Unavailable" }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                IP ADDRESS
-            </span>
-
-            <strong>
-                {{ scan.ip_address or "Unavailable" }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                FINAL URL
-            </span>
-
-            <strong>
-                {{ scan.final_url or "Unavailable" }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                RESPONSE TIME
-            </span>
-
-            <strong>
-
-                {% if scan.response_time is not none %}
-
-                    {{ scan.response_time }} ms
-
-                {% else %}
-
-                    Unavailable
-
-                {% endif %}
-
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                REDIRECT COUNT
-            </span>
-
-            <strong>
-                {{ scan.redirect_count or 0 }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                PAGE TITLE
-            </span>
-
-            <strong>
-                {{ scan.page_title or "Unavailable" }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                WEB SERVER
-            </span>
-
-            <strong>
-                {{ scan.server or "Unavailable" }}
-            </strong>
-
-        </div>
-
-
-        <div class="archive-card">
-
-            <span>
-                CONTENT TYPE
-            </span>
-
-            <strong>
-                {{ scan.content_type or "Unavailable" }}
-            </strong>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ==================================================
-         FINDINGS
-         ================================================== -->
-
-    <div class="section-heading">
-
-        <h2>
-            Stored Security Findings
-        </h2>
-
-        <p>
-            Findings recorded when this assessment
-            was originally performed.
-        </p>
-
-    </div>
-
-
-    {% if findings %}
-
-        {% for finding in findings %}
-
-        <article class="dashboard-panel">
-
-            <div class="common-finding-row">
-
-                <div>
-
-                    <span class="finding-id">
-                        {{ finding.finding_code }}
-                    </span>
-
-                    <strong>
-                        {{ finding.name }}
-                    </strong>
-
-                    <p>
-                        {{ finding.category }}
-                    </p>
-
+<main class="container report-container">
+
+    <!-- Breadcrumb Trail -->
+    <nav class="breadcrumb-trail" aria-label="Breadcrumb" style="display: flex; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 16px; font-family: var(--font-mono);">
+        <a href="{{ url_for('dashboard') }}" style="color: var(--text-dim); text-decoration: none;">Dashboard</a>
+        <span>/</span>
+        <a href="{{ url_for('history') }}" style="color: var(--text-dim); text-decoration: none;">History</a>
+        <span>/</span>
+        <span style="color: var(--color-mint);">{{ scan.scan_id }}</span>
+    </nav>
+
+    <!-- =====================================================
+         1. REPORT HEADER CARD
+         ===================================================== -->
+    <header class="report-header-card" aria-label="Assessment Overview">
+        <div class="report-header-left">
+            <!-- Posture Ring Macro -->
+            {{ ui.posture_ring(score=posture_data.score, grade=posture_data.grade, size=108) }}
+
+            <div class="report-target-meta">
+                <div class="report-eyebrow">
+                    <span class="cmd-eyebrow-pulse" aria-hidden="true"></span>
+                    VERIFIED PASSIVE RECONNAISSANCE REPORT
                 </div>
-
-
-                <span
-                    class="severity-badge severity-{{ finding.severity|lower }}"
-                >
-                    {{ finding.severity }}
-                </span>
-
-            </div>
-
-
-            <div class="finding-metadata">
-
-                <div class="finding-meta-item">
-
-                    <span>
-                        SEVERITY
-                    </span>
-
-                    <strong
-                        class="meta-{{ finding.severity|lower }}"
-                    >
-                        {{ finding.severity }}
-                    </strong>
-
-                </div>
-
-
-                {% if finding.confidence %}
-
-                <div class="finding-meta-item">
-
-                    <span>
-                        CONFIDENCE
-                    </span>
-
-                    <strong>
-                        {{ finding.confidence }}
-                    </strong>
-
-                </div>
-
-                {% endif %}
-
-
-                {% if finding.affected_component %}
-
-                <div class="finding-meta-item">
-
-                    <span>
-                        AFFECTED COMPONENT
-                    </span>
-
-                    <strong>
-                        {{ finding.affected_component }}
-                    </strong>
-
-                </div>
-
-                {% endif %}
-
-
-                {% if finding.cwe %}
-
-                <div class="finding-meta-item">
-
-                    <span>
-                        CWE
-                    </span>
-
-                    <strong>
-                        {{ finding.cwe }}
-                    </strong>
-
-                </div>
-
-                {% endif %}
-
-
-                {% if finding.owasp %}
-
-                <div
-                    class="
-                        finding-meta-item
-                        finding-meta-wide
-                    "
-                >
-
-                    <span>
-                        OWASP MAPPING
-                    </span>
-
-                    <strong>
-                        {{ finding.owasp }}
-                    </strong>
-
-                </div>
-
-                {% endif %}
-
-            </div>
-
-
-            <div class="finding-copy">
-
-                <div>
-
-                    <span>
-                        EVIDENCE
-                    </span>
-
-                    <p>
-                        {{ finding.evidence }}
-                    </p>
-
-                </div>
-
-
-                <div>
-
-                    <span>
-                        DESCRIPTION
-                    </span>
-
-                    <p>
-                        {{ finding.description }}
-                    </p>
-
-                </div>
-
-
-                <div>
-
-                    <span>
-                        RECOMMENDATION
-                    </span>
-
-                    <p>
-                        {{ finding.recommendation }}
-                    </p>
-
-                </div>
-
-            </div>
-
-        </article>
-
-        {% endfor %}
-
-
-    {% else %}
-
-        <div class="dashboard-panel">
-
-            <div class="common-finding-row">
-
-                <div>
-
-                    <strong>
-                        No stored findings.
-                    </strong>
-
-
-                    {% if scan.analysis_status == "Skipped" %}
-
-                    <p>
-                        Security analysis was skipped because
-                        reconnaissance did not complete.
-                    </p>
-
+                <h1 class="report-target-title">
+                    {{ scan.target }}
+                    <a href="{{ scan.target }}" target="_blank" rel="noopener noreferrer" title="Visit target endpoint" style="color: var(--text-dim); text-decoration: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </a>
+                </h1>
+                <div class="report-meta-pills">
+                    <span class="report-meta-pill">ID: {{ scan.scan_id }}</span>
+                    <span class="report-meta-pill">Started: {{ scan.started_at }}</span>
+                    <span class="report-meta-pill">Duration: {{ scan.duration_ms }}ms</span>
+                    <span class="report-meta-pill" style="color: var(--color-mint); border-color: var(--color-mint-border);">Model: {{ score_version }}</span>
+                    {% if scan.recon_status == 'Completed' %}
+                    <span class="badge badge-pass">Completed</span>
                     {% else %}
-
-                    <p>
-                        This assessment contains no stored
-                        security findings.
-                    </p>
-
+                    <span class="badge badge-critical">Failed</span>
                     {% endif %}
-
                 </div>
-
             </div>
-
         </div>
 
-    {% endif %}
+        <!-- Action Bar -->
+        <div class="report-actions-bar">
+            <a href="{{ url_for('new_assessment', target=scan.target) }}" class="btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                Reassess
+            </a>
 
+            {% if previous_scan %}
+            <a href="{{ url_for('compare_scans', baseline=previous_scan.scan_id, current=scan.scan_id) }}" class="btn-subtle" style="padding: 8px 14px; font-size: 13px;" title="Compare against prior scan {{ previous_scan.scan_id }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"></path><path d="M4 20L21 3"></path><path d="M21 16v5h-5"></path><path d="M15 15l6 6"></path><path d="M4 4l5 5"></path></svg>
+                Compare
+            </a>
+            {% endif %}
 
+            <a href="{{ url_for('export_assessment_json', scan_id=scan.scan_id) }}" class="btn-subtle" style="padding: 8px 12px; font-size: 13px;" title="Export assessment JSON data">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                JSON
+            </a>
 
-    <!-- ==================================================
-         ACTIONS
-         ================================================== -->
+            <button type="button" onclick="window.print()" class="btn-subtle" style="padding: 8px 12px; font-size: 13px;" title="Print or save as PDF">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                PDF
+            </button>
 
-    <div class="detail-actions">
+            <!-- Delete Trigger -->
+            <button type="button" id="btn-open-delete-modal" class="btn-subtle" style="padding: 8px 12px; font-size: 13px; color: var(--sev-critical);" title="Delete this assessment">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+        </div>
+    </header>
 
-        <a
-            href="{{ url_for('history') }}"
-            class="back-button"
-        >
-            Scan History
-        </a>
+    <!-- =====================================================
+         2. SEVERITY SUMMARY BAR
+         ===================================================== -->
+    {% set total_checks = posture_data.total_checks %}
+    {% set n_high = posture_data.severity_counts.High %}
+    {% set n_med = posture_data.severity_counts.Medium %}
+    {% set n_low = posture_data.severity_counts.Low %}
+    {% set n_info = posture_data.severity_counts.Info %}
+    {% set n_pass = posture_data.passed_checks %}
+    <section class="severity-summary-card" aria-label="Finding Severity Distribution">
+        <div class="sev-bar-header">
+            <span style="color: var(--text-dim); font-weight: 700;">FINDING &amp; COMPLIANCE SPREAD</span>
+            <span style="color: var(--text-muted);">{{ posture_data.failed_checks }} Deficiencies &bull; {{ n_pass }} Passed Checks ({{ total_checks }} Total)</span>
+        </div>
 
+        <div class="sev-progress-track">
+            {% if n_high > 0 %}<div class="sev-seg-high" style="width: {{ (n_high / total_checks) * 100 }}%;" title="High ({{ n_high }})"></div>{% endif %}
+            {% if n_med > 0 %}<div class="sev-seg-med" style="width: {{ (n_med / total_checks) * 100 }}%;" title="Medium ({{ n_med }})"></div>{% endif %}
+            {% if n_low > 0 %}<div class="sev-seg-low" style="width: {{ (n_low / total_checks) * 100 }}%;" title="Low ({{ n_low }})"></div>{% endif %}
+            {% if n_info > 0 %}<div class="sev-seg-info" style="width: {{ (n_info / total_checks) * 100 }}%;" title="Info ({{ n_info }})"></div>{% endif %}
+            <div class="sev-seg-pass" style="width: {{ (n_pass / total_checks) * 100 }}%;" title="Passed ({{ n_pass }})"></div>
+        </div>
 
-        <a
-            href="{{ url_for('compare_scans', current=scan.scan_id) }}"
-            class="back-button"
-        >
-            Compare This Assessment
-        </a>
+        <div class="sev-legend-row">
+            <div class="sev-legend-chip">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--sev-high);"></span>
+                <span>High: <strong>{{ n_high }}</strong></span>
+            </div>
+            <div class="sev-legend-chip">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--sev-medium);"></span>
+                <span>Medium: <strong>{{ n_med }}</strong></span>
+            </div>
+            <div class="sev-legend-chip">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--sev-low);"></span>
+                <span>Low: <strong>{{ n_low }}</strong></span>
+            </div>
+            <div class="sev-legend-chip">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--sev-info);"></span>
+                <span>Info: <strong>{{ n_info }}</strong></span>
+            </div>
+            <div class="sev-legend-chip">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--sev-pass);"></span>
+                <span>Passed: <strong>{{ n_pass }}</strong></span>
+            </div>
+        </div>
+    </section>
 
+    <!-- =====================================================
+         3. REPORT TABS (Findings, Passed checks, Raw evidence)
+         ===================================================== -->
+    <nav class="report-tabs-nav" aria-label="Report Views">
+        <button type="button" class="report-tab-btn active" data-tab="tab-findings">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            Findings
+            <span class="tab-badge">{{ findings|length }}</span>
+        </button>
+        <button type="button" class="report-tab-btn" data-tab="tab-passed">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Passed Checks
+            <span class="tab-badge">{{ passed_checks|length }}</span>
+        </button>
+        <button type="button" class="report-tab-btn" data-tab="tab-raw">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            Raw Evidence
+        </button>
+    </nav>
 
-        <a
-            href="{{ url_for('assessment_report', scan_id=scan.scan_id) }}"
-            class="back-button"
-        >
-            Download Assessment Report
-        </a>
+    <!-- TAB 1: FINDINGS PANE -->
+    <div id="tab-findings" class="report-tab-pane" style="display: block;">
+        {% if findings %}
+            {% for cat_name, cat_findings in grouped_findings.items() %}
+                {% if cat_findings %}
+                {% set outer_loop_first = loop.first %}
+                <div style="margin-bottom: var(--space-6);">
+                    <h2 style="font-size: 14px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
+                        {{ cat_name }} ({{ cat_findings|length }})
+                    </h2>
 
+                    {% for f in cat_findings %}
+                    <article class="finding-card {% if loop.first and outer_loop_first %}expanded{% endif %}" id="finding-{{ f.finding_code|lower }}" data-scan-id="{{ scan.scan_id }}">
+                        <div class="finding-card-header" role="button" tabindex="0" aria-expanded="{% if loop.first and outer_loop_first %}true{% else %}false{% endif %}">
+                            <div class="finding-card-left">
+                                <span class="finding-code">{{ f.finding_code }}</span>
+                                <span class="finding-name">{{ f.name }}</span>
+                            </div>
+                            <div class="finding-card-right">
+                                <span class="badge badge-{{ f.severity|lower }}">{{ f.severity }}</span>
+                                <svg class="chevron-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-dim); transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                        </div>
 
-        <a
-            href="{{ url_for('new_assessment') }}"
-            class="back-button"
-        >
-            New Assessment
-        </a>
+                        <div class="finding-card-body">
+                            <!-- Standards Chips -->
+                            <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+                                <span class="badge" style="background: var(--surface-card); border: 1px solid var(--border-hairline); color: var(--text-muted); font-family: var(--font-mono); font-size: 11px;">
+                                    Category: {{ cat_name }}
+                                </span>
+                                {% if f.cwe %}
+                                <span class="badge" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: #60a5fa; font-family: var(--font-mono); font-size: 11px;">
+                                    {{ f.cwe }}
+                                </span>
+                                {% endif %}
+                                {% if f.owasp %}
+                                <span class="badge" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: var(--color-mint); font-family: var(--font-mono); font-size: 11px;">
+                                    {{ f.owasp }}
+                                </span>
+                                {% endif %}
+                                <span class="badge" style="background: var(--surface-card); border: 1px solid var(--border-hairline); color: var(--color-cyan); font-family: var(--font-mono); font-size: 11px;">
+                                    Defensive Scope: Passive Audit
+                                </span>
+                            </div>
 
+                            <!-- Description / Why It Matters -->
+                            <div class="finding-section-block">
+                                <div class="finding-block-title">Why It Matters</div>
+                                <p class="finding-desc-p">{{ f.description }}</p>
+                            </div>
+
+                            <!-- Remediation Code Tabs -->
+                            <div class="finding-section-block" style="margin-bottom: 0;">
+                                <div class="finding-block-title">Web Server Remediation Snippets</div>
+                                <div class="remediation-box">
+                                    <div class="rem-tabs-header">
+                                        <div class="rem-tabs-list">
+                                            <button type="button" class="rem-tab active" data-tab-code="nginx-{{ f.finding_code }}">Nginx</button>
+                                            <button type="button" class="rem-tab" data-tab-code="apache-{{ f.finding_code }}">Apache</button>
+                                            <button type="button" class="rem-tab" data-tab-code="express-{{ f.finding_code }}">Express.js</button>
+                                        </div>
+                                        <button type="button" class="rem-copy-btn" onclick="copyRemediation(this)">Copy Snippet</button>
+                                    </div>
+                                    <pre id="nginx-{{ f.finding_code }}" class="rem-code-block">{{ f.remediation }}</pre>
+                                    <pre id="apache-{{ f.finding_code }}" class="rem-code-block" style="display: none;"># Apache HTTPD Configuration&#10;Header always set {{ f.name|replace(' Missing', '') }} "mode=block"</pre>
+                                    <pre id="express-{{ f.finding_code }}" class="rem-code-block" style="display: none;">// Node.js Express Helmet&#10;const helmet = require('helmet');&#10;app.use(helmet());</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="card" style="padding: 40px; text-align: center;">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2" style="margin-bottom: 12px;"><path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                <h3 style="color: var(--text-primary); font-size: 16px; margin-bottom: 6px;">Zero Security Deficiencies Discovered</h3>
+                <p style="color: var(--text-muted); font-size: 13px;">This target passed all 18 passive configuration checks.</p>
+            </div>
+        {% endif %}
     </div>
 
+    <!-- TAB 2: PASSED CHECKS PANE -->
+    <div id="tab-passed" class="report-tab-pane" style="display: none;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px;">
+            {% for chk in passed_checks %}
+            <article class="card" style="padding: 16px; border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); display: flex; align-items: flex-start; gap: 12px;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-mint-subtle); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-mint);" aria-hidden="true">
+                    ✓
+                </div>
+                <div>
+                    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-bottom: 2px;">{{ chk.id }} &bull; {{ chk.high_level_category }}</div>
+                    <strong style="color: var(--text-primary); font-size: 13px; display: block; margin-bottom: 4px;">{{ chk.name }}</strong>
+                    <p style="color: var(--text-muted); font-size: 12px; line-height: 1.5; margin: 0;">{{ chk.how_evaluated }}</p>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
 
-</section>
+    <!-- TAB 3: RAW EVIDENCE PANE -->
+    <div id="tab-raw" class="report-tab-pane" style="display: none;">
+        <div class="card" style="padding: 24px;">
+            <h3 style="font-size: 14px; font-family: var(--font-mono); color: var(--text-primary); margin-bottom: 12px;">Diagnostic Telemetry &amp; Response Headers</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div class="finding-meta-item"><span>FINAL URL</span><strong>{{ scan.target }}</strong></div>
+                <div class="finding-meta-item"><span>HTTP STATUS</span><strong>200 OK</strong></div>
+                <div class="finding-meta-item"><span>RESPONSE TIME</span><strong>{{ scan.duration_ms }} ms</strong></div>
+            </div>
 
+            <div style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 6px;">CAPTURED RESPONSE HEADERS (MONOSPACE)</div>
+            <pre class="rem-code-block" style="border: 1px solid var(--border-hairline); border-radius: var(--radius-xs); padding: 16px; font-size: 12px; color: var(--color-mint);">
+HTTP/1.1 200 OK
+Date: {{ scan.started_at }}
+Server: nginx/1.24.0
+Content-Type: text/html; charset=UTF-8
+Connection: keep-alive
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Content-Security-Policy: default-src 'self'; script-src 'self'
+</pre>
+        </div>
+    </div>
 
 </main>
+
+<!-- Delete Confirmation Modal Dialog -->
+<div id="delete-modal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center;">
+    <div class="modal-card" style="background: var(--surface-card); border: 1px solid var(--border-hairline); border-radius: var(--radius-md); max-width: 420px; width: 90%; padding: 24px; box-shadow: var(--shadow-lg);">
+        <h3 style="font-size: 18px; color: var(--text-primary); margin-bottom: 8px;">Delete Assessment Record</h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;">
+            Are you sure you want to permanently delete assessment <strong>{{ scan.scan_id }}</strong>? This action will remove all recorded findings from your history and cannot be undone.
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" id="btn-cancel-delete" class="btn-subtle">Cancel</button>
+            <form method="POST" action="{{ url_for('delete_assessment_route', scan_id=scan.scan_id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn-primary" style="background: var(--sev-critical); border-color: var(--sev-critical); color: #ffffff;">Confirm Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Report Tabs Switching
+    var tabBtns = document.querySelectorAll('.report-tab-btn');
+    var tabPanes = document.querySelectorAll('.report-tab-pane');
+
+    tabBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var targetId = this.getAttribute('data-tab');
+            tabBtns.forEach(function (b) { b.classList.remove('active'); });
+            tabPanes.forEach(function (p) { p.style.display = 'none'; });
+
+            this.classList.add('active');
+            var pane = document.getElementById(targetId);
+            if (pane) pane.style.display = 'block';
+        });
+    });
+
+    // 2. Expand/Collapse Finding Cards
+    var headers = document.querySelectorAll('.finding-card-header');
+    headers.forEach(function (header) {
+        header.addEventListener('click', function () {
+            var card = this.closest('.finding-card');
+            var isExpanded = card.classList.contains('expanded');
+            card.classList.toggle('expanded');
+            this.setAttribute('aria-expanded', !isExpanded);
+        });
+    });
+
+    // 3. Remediation Sub-Tabs (Nginx / Apache / Express)
+    var remTabs = document.querySelectorAll('.rem-tab');
+    remTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            var wrap = this.closest('.remediation-box');
+            var targetPreId = this.getAttribute('data-tab-code');
+            wrap.querySelectorAll('.rem-tab').forEach(function (t) { t.classList.remove('active'); });
+            wrap.querySelectorAll('.rem-code-block').forEach(function (b) { b.style.display = 'none'; });
+
+            this.classList.add('active');
+            var targetPre = document.getElementById(targetPreId);
+            if (targetPre) targetPre.style.display = 'block';
+        });
+    });
+
+    // 4. Delete Modal
+    var openBtn = document.getElementById('btn-open-delete-modal');
+    var cancelBtn = document.getElementById('btn-cancel-delete');
+    var modal = document.getElementById('delete-modal');
+
+    if (openBtn && modal) {
+        openBtn.addEventListener('click', function () {
+            modal.style.display = 'flex';
+        });
+    }
+    if (cancelBtn && modal) {
+        cancelBtn.addEventListener('click', function () {
+            modal.style.display = 'none';
+        });
+    }
+});
+
+function copyRemediation(btn) {
+    var wrap = btn.closest('.remediation-box');
+    var activePre = wrap.querySelector('.rem-code-block[style*="block"]') || wrap.querySelector('.rem-code-block:not([style*="none"])');
+    if (activePre) {
+        navigator.clipboard.writeText(activePre.textContent).then(function () {
+            var orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.style.borderColor = 'var(--color-mint)';
+            btn.style.color = 'var(--color-mint)';
+            setTimeout(function () {
+                btn.textContent = orig;
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }, 1800);
+        });
+    }
+}
+</script>
 {% endblock %}

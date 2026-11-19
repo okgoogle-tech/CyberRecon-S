@@ -264,6 +264,54 @@ def test_navbar_remains_unmodified_on_dashboard(authenticated_client):
 
     # Navigation items
     assert "Dashboard" in html
-    assert "Scan History" in html
+    assert "History" in html
     assert "Compare" in html
     assert "New Assessment" in html
+
+
+def test_dashboard_open_findings_aggregates_latest_scan_per_target_only(app, authenticated_client):
+    """
+    Two scans of the exact same target must count findings once for active open totals,
+    ensuring donut, KPI, and targets table agree.
+    """
+    with app.app_context():
+        user_id = storage.get_user_by_username("testuser")["id"]
+        findings = [
+            {
+                "id": "CR-003",
+                "finding_code": "CR-003",
+                "name": "Content-Security-Policy Missing",
+                "category": "Browser Security",
+                "severity": "Medium",
+                "confidence": "High",
+                "evidence": "Missing",
+                "description": "Desc",
+                "recommendation": "Rec",
+            },
+            {
+                "id": "CR-004",
+                "finding_code": "CR-004",
+                "name": "Clickjacking Protection Missing",
+                "category": "Browser Security",
+                "severity": "Medium",
+                "confidence": "High",
+                "evidence": "Missing",
+                "description": "Desc",
+                "recommendation": "Rec",
+            },
+        ]
+        # Scan 1 for duplicate.test (2 findings)
+        data1 = make_assessment_data("CR-DUP-1", target="https://duplicate.test", findings=findings)
+        storage.save_assessment(data1, user_id)
+
+        # Scan 2 for duplicate.test (2 findings)
+        data2 = make_assessment_data("CR-DUP-2", target="https://duplicate.test", findings=findings)
+        storage.save_assessment(data2, user_id)
+
+        analytics = storage.get_dashboard_analytics(user_id, target_filter="https://duplicate.test")
+        # Total open findings must be 2, NOT 4!
+        assert analytics["severity_donut"]["total"] == 2
+        assert analytics["severity"]["total_findings"] == 2
+        assert analytics["severity"]["medium_count"] == 2
+        assert len(analytics["monitored_targets"]) == 1
+        assert analytics["monitored_targets"][0]["findings_count"] == 2

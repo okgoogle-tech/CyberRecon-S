@@ -1,462 +1,206 @@
 {% extends "base.html" %}
+{% import "macros/ui.html" as ui %}
 {% set active_page = "compare" %}
 
 {% block title %}Compare Assessments | CyberRecon{% endblock %}
 
 {% block content %}
-<main class="container">
+<main class="container" style="padding-top: var(--space-8); padding-bottom: var(--space-20); max-width: var(--container-max);">
 
-<section class="history-section">
-
-    <div class="tag">
-        HISTORICAL ANALYSIS
-    </div>
-
-
-    <h1>
-        Compare
-        <span>Assessments.</span>
-    </h1>
-
-
-    <p class="subtitle">
-
-        Compare two stored CyberRecon assessments
-        of the same target to identify changes in
-        security findings.
-
-    </p>
-
-
-    <form
-        method="GET"
-        action="{{ url_for('compare_scans') }}"
-        class="comparison-form"
-    >
-
-        <div class="comparison-selector">
-
-            <label for="baseline">
-                BASELINE ASSESSMENT
-            </label>
-
-            <select
-                id="baseline"
-                name="baseline"
-                required
-            >
-
-                <option value="">
-                    Select earlier assessment
-                </option>
-
-                {% for scan in scans %}
-
-                <option
-                    value="{{ scan.scan_id }}"
-
-                    {% if selected_baseline == scan.scan_id %}
-                    selected
-                    {% endif %}
-                >
-                    {{ scan.scan_id }}
-                    — {{ scan.target }}
-                    — {{ scan.started_at }}
-                </option>
-
-                {% endfor %}
-
-            </select>
-
+    <!-- Header Strip -->
+    <header class="cmd-header" style="margin-bottom: var(--space-6);">
+        <div class="cmd-eyebrow" style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--color-mint); font-family: var(--font-mono); text-transform: uppercase;">
+            <span class="cmd-eyebrow-pulse" aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: var(--color-mint);"></span>
+            HISTORICAL DELTA AUDIT
         </div>
-
-
-        <div class="comparison-arrow">
-            →
-        </div>
-
-
-        <div class="comparison-selector">
-
-            <label for="current">
-                CURRENT ASSESSMENT
-            </label>
-
-            <select
-                id="current"
-                name="current"
-                required
-            >
-
-                <option value="">
-                    Select newer assessment
-                </option>
-
-                {% for scan in scans %}
-
-                <option
-                    value="{{ scan.scan_id }}"
-
-                    {% if selected_current == scan.scan_id %}
-                    selected
-                    {% endif %}
-                >
-                    {{ scan.scan_id }}
-                    — {{ scan.target }}
-                    — {{ scan.started_at }}
-                </option>
-
-                {% endfor %}
-
-            </select>
-
-        </div>
-
-
-        <button
-            type="submit"
-            class="compare-button"
-        >
-            Compare Assessments
-        </button>
-
-    </form>
-
+        <h1 class="cmd-title" style="font-size: var(--text-3xl); font-weight: 800; color: var(--text-primary); margin: 4px 0 6px 0;">
+            Compare <span>Assessments</span>
+        </h1>
+        <p class="cmd-subtitle" style="font-size: var(--text-sm); color: var(--text-muted); margin: 0;">
+            Pinpoint resolved deficiencies, regression risks, and check status transitions between two scans of the same target.
+        </p>
+    </header>
 
     {% if comparison_error %}
-
-    <div class="connection-error">
-
-        <div class="connection-error-title">
-            Comparison unavailable
-        </div>
-
-        <p>
-            {{ comparison_error }}
-        </p>
-
+    <div class="card" style="border-left: 3px solid var(--sev-critical); padding: 14px 18px; margin-bottom: 24px; background: rgba(239,68,68,0.1); color: var(--sev-critical); font-size: 13.5px;">
+        ✕ {{ comparison_error }}
     </div>
-
     {% endif %}
 
+    {% if scans|length < 2 and not comparison_error %}
+    <!-- Designed Empty State (< 2 Scans) -->
+    <div class="card" style="padding: 48px 32px; text-align: center; border: 1px solid var(--border-hairline); border-radius: var(--radius-md);">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--color-mint-subtle); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><path d="M16 3h5v5"></path><path d="M4 20L21 3"></path><path d="M21 16v5h-5"></path><path d="M15 15l6 6"></path><path d="M4 4l5 5"></path></svg>
+        </div>
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Need at Least 2 Assessments</h2>
+        <p style="color: var(--text-muted); font-size: 14px; max-width: 480px; margin: 0 auto 24px auto; line-height: 1.5;">
+            Differential posture comparison requires at least two completed scans of the same target to track security changes.
+        </p>
+        <a href="{{ url_for('new_assessment') }}" class="btn-primary" style="padding: 9px 20px; font-size: 13px;">
+            Run Second Assessment &rarr;
+        </a>
+    </div>
+
+    {% else %}
+
+    <!-- Assessment Selector Form -->
+    <div class="card" style="padding: 20px 24px; border: 1px solid var(--border-hairline); border-radius: var(--radius-md); margin-bottom: var(--space-6);">
+        <form method="GET" action="{{ url_for('compare_scans') }}" style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+            
+            <!-- Target Selector -->
+            <div style="flex: 1; min-width: 220px;">
+                <label for="compare-target" style="display: block; font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); margin-bottom: 6px;">1. SELECT TARGET ENDPOINT</label>
+                <select id="compare-target" name="target" class="cmd-select" style="width: 100%; padding: 8px 12px;" onchange="this.form.submit()">
+                    {% for tgt, t_scans in scans_by_target.items() %}
+                    <option value="{{ tgt }}" {% if target_filter == tgt %}selected{% endif %}>
+                        {{ tgt }} ({{ t_scans|length }} scans)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Baseline Scan (Earlier) -->
+            <div style="flex: 1; min-width: 220px;">
+                <label for="baseline" style="display: block; font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); margin-bottom: 6px;">2. BASELINE (EARLIER SCAN)</label>
+                <select id="baseline" name="baseline" class="cmd-select" style="width: 100%; padding: 8px 12px;" required>
+                    <option value="">Select baseline scan</option>
+                    {% for scan in target_scans %}
+                    <option value="{{ scan.scan_id }}" {% if selected_baseline == scan.scan_id %}selected{% endif %}>
+                        {{ scan.scan_id }} ({{ scan.started_at }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: flex; align-items: center; padding-bottom: 10px; color: var(--text-dim);" aria-hidden="true">
+                &rarr;
+            </div>
+
+            <!-- Current Scan (Newer) -->
+            <div style="flex: 1; min-width: 220px;">
+                <label for="current" style="display: block; font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); margin-bottom: 6px;">3. CURRENT (NEWER SCAN)</label>
+                <select id="current" name="current" class="cmd-select" style="width: 100%; padding: 8px 12px;" required>
+                    <option value="">Select newer scan</option>
+                    {% for scan in target_scans %}
+                    <option value="{{ scan.scan_id }}" {% if selected_current == scan.scan_id %}selected{% endif %}>
+                        {{ scan.scan_id }} ({{ scan.started_at }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn-primary" style="padding: 9px 18px; font-size: 13px;">
+                Compare
+            </button>
+        </form>
+    </div>
+
+    {% if comparison_error %}
+    <div class="card" style="border-left: 3px solid var(--sev-critical); padding: 14px 18px; margin-bottom: 24px; background: rgba(239,68,68,0.1); color: var(--sev-critical); font-size: 13.5px;">
+        ✕ {{ comparison_error }}
+    </div>
+    {% endif %}
 
     {% if comparison %}
-
-    <div class="section-heading">
-
-        <h2>
-            Comparison Summary
-        </h2>
-
-        <p>
-            Changes between the selected
-            assessments.
-        </p>
-
-    </div>
-
-
-    <div class="comparison-summary">
-
-        <div class="comparison-stat">
-
-            <span>
-                PREVIOUS FINDINGS
-            </span>
-
-            <strong>
-                {{ comparison.summary.baseline_total }}
-            </strong>
-
-        </div>
-
-
-        <div class="comparison-stat comparison-new">
-
-            <span>
-                NEW
-            </span>
-
-            <strong>
-                {{ comparison.summary.new }}
-            </strong>
-
-        </div>
-
-
-        <div class="comparison-stat comparison-resolved">
-
-            <span>
-                RESOLVED
-            </span>
-
-            <strong>
-                {{ comparison.summary.resolved }}
-            </strong>
-
-        </div>
-
-
-        <div class="comparison-stat comparison-unchanged">
-
-            <span>
-                UNCHANGED
-            </span>
-
-            <strong>
-                {{ comparison.summary.unchanged }}
-            </strong>
-
-        </div>
-
-
-        <div class="comparison-stat">
-
-            <span>
-                CURRENT FINDINGS
-            </span>
-
-            <strong>
-                {{ comparison.summary.current_total }}
-            </strong>
-
-        </div>
-
-    </div>
-
-
-    <div class="comparison-meta">
-
-        <div>
-
-            <span>BASELINE</span>
-
-            <strong>
-                {{ comparison.baseline.scan_id }}
-            </strong>
-
-            <p>
-                {{ comparison.baseline.started_at }}
-            </p>
-
-        </div>
-
-
-        <div>
-
-            <span>CURRENT</span>
-
-            <strong>
-                {{ comparison.current.scan_id }}
-            </strong>
-
-            <p>
-                {{ comparison.current.started_at }}
-            </p>
-
-        </div>
-
-
-        {% if comparison.response_difference is not none %}
-
-        <div>
-
-            <span>
-                RESPONSE TIME CHANGE
-            </span>
-
-            <strong>
-
-                {% if comparison.response_difference > 0 %}
-                    +{{ comparison.response_difference }} ms
-                {% else %}
-                    {{ comparison.response_difference }} ms
-                {% endif %}
-
-            </strong>
-
-        </div>
-
-        {% endif %}
-
-    </div>
-
-
-    <div class="comparison-column-grid">
-
-        <section>
-
-            <div class="comparison-section-title new-title">
-
-                <h2>
-                    New Findings
-                </h2>
-
-                <span>
-                    {{ comparison.summary.new }}
-                </span>
-
-            </div>
-
-
-            {% if comparison.new_findings %}
-
-                {% for finding in comparison.new_findings %}
-
-                <div class="comparison-finding">
-
-                    <span class="finding-id">
-                        {{ finding.finding_code }}
+    <!-- =====================================================
+         POSTURE DELTA HEADER CARD
+         ===================================================== -->
+    <div class="card" style="padding: 24px 28px; border: 1px solid var(--border-hairline); border-radius: var(--radius-lg); margin-bottom: var(--space-6); background: var(--surface-card);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            
+            <!-- Left: Delta Overview -->
+            <div>
+                <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); text-transform: uppercase;">SECURITY POSTURE SHIFT</span>
+                <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 4px;">
+                    <span style="font-size: 32px; font-weight: 800; font-family: var(--font-mono); color: {% if score_delta > 0 %}var(--color-mint){% elif score_delta < 0 %}var(--sev-critical){% else %}var(--text-primary){% endif %};">
+                        {% if score_delta > 0 %}+{{ score_delta }}{% else %}{{ score_delta }}{% endif %} pts
                     </span>
-
-                    <strong>
-                        {{ finding.name }}
-                    </strong>
-
-                    <span
-                        class="severity-badge severity-{{ finding.severity|lower }}"
-                    >
-                        {{ finding.severity }}
+                    <span style="font-size: 14px; color: var(--text-muted);">
+                        (Baseline: {{ baseline_score.score }} / Grade {{ baseline_score.grade }} &rarr; Current: {{ current_score.score }} / Grade {{ current_score.grade }})
                     </span>
-
                 </div>
-
-                {% endfor %}
-
-            {% else %}
-
-            <div class="comparison-empty">
-                No new findings.
             </div>
 
-            {% endif %}
-
-        </section>
-
-
-        <section>
-
-            <div class="comparison-section-title resolved-title">
-
-                <h2>
-                    Resolved Findings
-                </h2>
-
-                <span>
-                    {{ comparison.summary.resolved }}
-                </span>
-
-            </div>
-
-
-            {% if comparison.resolved_findings %}
-
-                {% for finding in comparison.resolved_findings %}
-
-                <div class="comparison-finding">
-
-                    <span class="finding-id">
-                        {{ finding.finding_code }}
-                    </span>
-
-                    <strong>
-                        {{ finding.name }}
-                    </strong>
-
-                    <span
-                        class="severity-badge severity-{{ finding.severity|lower }}"
-                    >
-                        {{ finding.severity }}
-                    </span>
-
+            <!-- Right: 3 Delta Counters -->
+            <div style="display: flex; gap: 24px; align-items: center;">
+                <div style="text-align: center;">
+                    <span style="display: block; font-size: 24px; font-weight: 800; font-family: var(--font-mono); color: var(--color-mint);">+{{ comparison.summary.resolved }}</span>
+                    <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">Resolved</span>
                 </div>
-
-                {% endfor %}
-
-            {% else %}
-
-            <div class="comparison-empty">
-                No resolved findings.
-            </div>
-
-            {% endif %}
-
-        </section>
-
-
-        <section>
-
-            <div class="comparison-section-title unchanged-title">
-
-                <h2>
-                    Unchanged Findings
-                </h2>
-
-                <span>
-                    {{ comparison.summary.unchanged }}
-                </span>
-
-            </div>
-
-
-            {% if comparison.unchanged_findings %}
-
-                {% for finding in comparison.unchanged_findings %}
-
-                <div class="comparison-finding">
-
-                    <span class="finding-id">
-                        {{ finding.finding_code }}
-                    </span>
-
-                    <strong>
-                        {{ finding.name }}
-                    </strong>
-
-                    <span
-                        class="severity-badge severity-{{ finding.severity|lower }}"
-                    >
-                        {{ finding.severity }}
-                    </span>
-
+                <div style="text-align: center;">
+                    <span style="display: block; font-size: 24px; font-weight: 800; font-family: var(--font-mono); color: var(--sev-high);">{{ comparison.summary.new }}</span>
+                    <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">New Risks</span>
                 </div>
-
-                {% endfor %}
-
-            {% else %}
-
-            <div class="comparison-empty">
-                No unchanged findings.
+                <div style="text-align: center;">
+                    <span style="display: block; font-size: 24px; font-weight: 800; font-family: var(--font-mono); color: var(--text-dim);">{{ comparison.summary.unchanged }}</span>
+                    <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">Unchanged</span>
+                </div>
             </div>
 
-            {% endif %}
-
-        </section>
-
+        </div>
     </div>
+
+    <!-- =====================================================
+         18-CHECK STATUS TRANSITION TABLE
+         ===================================================== -->
+    <section class="card" style="border: 1px solid var(--border-hairline); border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-6);">
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-hairline); background: var(--surface-raised);">
+            <h2 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px 0;">Check Transition Matrix (18 Checks)</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Evaluation state transitions across all 18 security checks between the two audits.</p>
+        </div>
+
+        <div style="overflow-x: auto; width: 100%;">
+            <table class="cmd-dense-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-hairline); background: var(--surface-card); font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">
+                        <th style="padding: 10px 16px;">CHECK ID</th>
+                        <th style="padding: 10px 16px;">SECURITY CHECK</th>
+                        <th style="padding: 10px 16px;">CATEGORY</th>
+                        <th style="padding: 10px 16px;">BASELINE</th>
+                        <th style="padding: 10px 16px;">CURRENT</th>
+                        <th style="padding: 10px 16px; text-align: right;">TRANSITION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in transition_matrix %}
+                    <tr style="border-bottom: 1px solid var(--border-hairline); font-size: 13px;">
+                        <td style="padding: 12px 16px; font-family: var(--font-mono); font-weight: 700; color: var(--text-dim);">
+                            {{ row.id }}
+                        </td>
+                        <td style="padding: 12px 16px; color: var(--text-primary); font-weight: 600;">
+                            {{ row.name }}
+                        </td>
+                        <td style="padding: 12px 16px; color: var(--text-muted); font-size: 12px;">
+                            {{ row.category }}
+                        </td>
+                        <td style="padding: 12px 16px;">
+                            {% if row.baseline_status == 'Pass' %}
+                            <span style="color: var(--color-mint); font-family: var(--font-mono); font-size: 12px;">✓ Passed</span>
+                            {% else %}
+                            <span style="color: var(--sev-high); font-family: var(--font-mono); font-size: 12px;">✕ Failed</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 16px;">
+                            {% if row.current_status == 'Pass' %}
+                            <span style="color: var(--color-mint); font-family: var(--font-mono); font-size: 12px;">✓ Passed</span>
+                            {% else %}
+                            <span style="color: var(--sev-high); font-family: var(--font-mono); font-size: 12px;">✕ Failed</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 16px; text-align: right;">
+                            <span class="badge {{ row.badge }}">{{ row.status }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     {% endif %}
 
-
-    <div class="detail-actions">
-
-        <a
-            href="{{ url_for('history') }}"
-            class="back-button"
-        >
-            ← Scan History
-        </a>
-
-        <a
-            href="{{ url_for('new_assessment') }}"
-            class="back-button"
-        >
-            New Assessment
-        </a>
-
-    </div>
-
-</section>
+    {% endif %}
 
 </main>
 {% endblock %}

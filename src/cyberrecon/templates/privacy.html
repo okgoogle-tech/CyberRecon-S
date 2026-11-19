@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% set active_page = "privacy" %}
+
+{% block title %}Privacy Policy | CyberRecon{% endblock %}
+
+{% block content %}
+<main class="container" style="padding-top: var(--space-12); padding-bottom: var(--space-20); max-width: 780px;">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>GOVERNANCE &amp; PRIVACY</div>
+    <h1 style="font-size: 36px; margin-bottom: var(--space-4);">Privacy Policy</h1>
+    <p class="lead" style="margin-bottom: var(--space-8);">
+        CyberRecon is engineered with a Strictly Passive Architecture and local-first data privacy principles. We collect no external tracking metrics and never transmit target data to third parties.
+    </p>
+
+    <div class="card" style="padding: 28px; margin-bottom: 24px;">
+        <h3 style="margin-bottom: 12px; color: var(--color-mint);">1. Local Database Isolation</h3>
+        <p style="margin-bottom: 16px;">
+            All assessment inputs, target hostnames, resolved IP addresses, HTTP response headers, and configuration audit records are stored exclusively within your local SQLite database instance (<code class="mono">data/cyberrecon.db</code>). User records and scan histories are isolated strictly by authenticated account IDs.
+        </p>
+
+        <h3 style="margin-bottom: 12px; color: var(--color-mint);">2. Passive Telemetry Only</h3>
+        <p style="margin-bottom: 16px;">
+            CyberRecon does not embed third-party analytics scripts, tracking pixels, or external CDN dependencies. All CSS and JavaScript assets are served locally under self-hosted routes with strict Content Security Policy enforcement.
+        </p>
+
+        <h3 style="margin-bottom: 12px; color: var(--color-mint);">3. Session &amp; Credential Protection</h3>
+        <p style="margin-bottom: 16px;">
+            User passwords are encrypted using Werkzeug's salted cryptographic hash routines. Session cookies are enforced with <code class="mono">HttpOnly</code>, <code class="mono">SameSite=Lax</code>, and 8-hour deterministic expiration to prevent client-side script theft.
+        </p>
+
+        <h3 style="margin-bottom: 12px; color: var(--color-mint);">4. Data Retention &amp; Erasure</h3>
+        <p>
+            You retain complete control of your historical scan records. Individual assessment records can be deleted from the audit view at any time, which executes a cascading purge of associated findings.
+        </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+        <a href="{{ url_for('home') }}" class="btn-subtle">&larr; Return to Home</a>
+    </div>
+</main>
+{% endblock %}

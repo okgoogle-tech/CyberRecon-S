@@ -1,0 +1,101 @@
+{# =========================================================
+   CYBERRECON SHARED UI JINJA MACROS
+   PostureRing, SeverityBadge, CategoryBadge, SignalLine, StatTile
+   ========================================================= #}
+
+{% macro posture_ring(score=100, grade='A', size=140, animated=True, show_label=True) %}
+{% set safe_score = score if score is not none else 100 %}
+{% set circumference = 283 %}
+{# stroke-dashoffset = circumference - (score / 100 * circumference) #}
+{% set dashoffset = circumference - ((safe_score / 100) * circumference) %}
+{% set ring_color = 'var(--sev-pass)' if safe_score >= 90 else ('var(--color-cyan)' if safe_score >= 80 else ('var(--sev-medium)' if safe_score >= 70 else ('var(--sev-high)' if safe_score >= 60 else 'var(--sev-critical)'))) %}
+
+<div class="posture-ring-wrap" style="--ring-size: {{ size }}px; --ring-color: {{ ring_color }};" aria-label="Security Posture Score {{ safe_score }}/100, Grade {{ grade }}">
+    <svg class="posture-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="posture-ring-track" cx="50" cy="50" r="45"></circle>
+        <circle class="posture-ring-fill {% if animated %}animated{% endif %}" cx="50" cy="50" r="45"
+            style="stroke-dashoffset: {{ dashoffset }};"></circle>
+    </svg>
+    <div class="posture-ring-center">
+        <span class="posture-ring-grade">{{ grade }}</span>
+        {% if show_label %}
+        <span class="posture-ring-score tabular">{{ safe_score }}<span style="font-size: 10px; opacity: 0.6;">/100</span></span>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro severity_badge(severity) %}
+{% set sev_clean = (severity or 'Info')|string|trim|title %}
+{% if sev_clean == 'Critical' %}
+<span class="badge badge-critical" aria-label="Severity Critical">CRITICAL</span>
+{% elif sev_clean == 'High' %}
+<span class="badge badge-high" aria-label="Severity High">HIGH</span>
+{% elif sev_clean == 'Medium' %}
+<span class="badge badge-medium" aria-label="Severity Medium">MEDIUM</span>
+{% elif sev_clean == 'Low' %}
+<span class="badge badge-low" aria-label="Severity Low">LOW</span>
+{% elif sev_clean == 'Pass' %}
+<span class="badge badge-pass" aria-label="Check Passed">PASS</span>
+{% else %}
+<span class="badge badge-info" aria-label="Severity Info">INFO</span>
+{% endif %}
+{% endmacro %}
+
+{% macro category_badge(category) %}
+<span class="badge" style="background: var(--surface-ink-850); color: var(--text-secondary); border-color: var(--hairline);" aria-label="Category {{ category }}">
+    {{ category }}
+</span>
+{% endmacro %}
+
+{% macro signal_line(direction='horizontal', extra_class='') %}
+{% if direction == 'horizontal' %}
+<div class="signal-line-horizontal {{ extra_class }}" aria-hidden="true"></div>
+{% else %}
+<div class="signal-line-vertical {{ extra_class }}" aria-hidden="true"></div>
+{% endif %}
+{% endmacro %}
+
+{% macro stat_tile(label, value, delta=None, subtext=None, href=None) %}
+<article class="card stat-tile" tabindex="0">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);">{{ label }}</span>
+        {% if delta is not none %}
+        <span class="badge {% if delta >= 0 %}badge-pass{% else %}badge-critical{% endif %} tabular">
+            {{ '+' if delta > 0 else '' }}{{ delta }}
+        </span>
+        {% endif %}
+    </div>
+    <div style="font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); margin-bottom: 4px;" class="tabular">
+        {{ value }}
+    </div>
+    {% if subtext %}
+    <div style="font-size: 12px; color: var(--text-muted);">
+        {{ subtext }}
+    </div>
+    {% endif %}
+</article>
+{% endmacro %}
+
+{% macro icon(name, size=16, extra_class='') %}
+<svg class="cr-icon cr-icon-{{ name }} {{ extra_class }}" width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: middle; display: inline-block;">
+    <use href="#icon-{{ name }}"></use>
+</svg>
+{% endmacro %}
+
+{% macro sparkline(points=[], width=90, height=28, color='#10b981') %}
+
+{% if points and points|length >= 2 %}
+{% set max_val = points|max %}
+{% set safe_max = max_val if max_val > 0 else 1 %}
+<svg width="{{ width }}" height="{{ height }}" viewBox="0 0 90 28" preserveAspectRatio="none" class="svg-sparkline" aria-hidden="true">
+    <polyline points="{% for p in points %}{{ (loop.index0 * (86 / (points|length - 1)) + 2)|round(1) }},{{ (24 - ((p / safe_max) * 20))|round(1) }} {% endfor %}"
+        fill="none" stroke="{{ color }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+{% else %}
+<svg width="{{ width }}" height="{{ height }}" viewBox="0 0 90 28" class="svg-sparkline" aria-hidden="true">
+    <line x1="2" y1="14" x2="88" y2="14" stroke="{{ color }}" stroke-width="2" stroke-dasharray="3 3" opacity="0.4" />
+</svg>
+{% endif %}
+{% endmacro %}
+

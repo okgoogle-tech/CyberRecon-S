@@ -406,3 +406,86 @@ def test_logged_in_user_cannot_open_login(
     ].endswith(
         "/dashboard"
     )
+
+
+def test_is_safe_local_redirect_unit():
+    """Unit tests for is_safe_local_redirect helper."""
+    from cyberrecon.app import is_safe_local_redirect
+
+    # Safe local targets
+    assert is_safe_local_redirect("/dashboard") is True
+    assert is_safe_local_redirect("/history") is True
+    assert is_safe_local_redirect("/new?target=https://example.com") is True
+    assert is_safe_local_redirect("/about#catalog") is True
+
+    # Unsafe external URLs
+    assert is_safe_local_redirect("https://evil.com") is False
+    assert is_safe_local_redirect("http://evil.com") is False
+    assert is_safe_local_redirect("ftp://evil.com") is False
+
+    # Protocol-relative URLs
+    assert is_safe_local_redirect("//evil.com") is False
+    assert is_safe_local_redirect("//evil.com/path") is False
+    assert is_safe_local_redirect("///evil.com") is False
+
+    # JavaScript and data schemes
+    assert is_safe_local_redirect("javascript:alert(1)") is False
+    assert is_safe_local_redirect("javascript:void(0)") is False
+    assert is_safe_local_redirect("data:text/html,<script>alert(1)</script>") is False
+
+    # Backslash and carriage return bypasses
+    assert is_safe_local_redirect("/\\evil.com") is False
+    assert is_safe_local_redirect("\\evil.com") is False
+    assert is_safe_local_redirect("/dashboard\r\nLocation: https://evil.com") is False
+    assert is_safe_local_redirect("/dashboard\nevil") is False
+    assert is_safe_local_redirect("evil.com") is False
+    assert is_safe_local_redirect("") is False
+    assert is_safe_local_redirect(None) is False
+
+
+def test_login_open_redirect_attack_vectors_blocked(client, register_user):
+    """
+    Login endpoint must reject malicious next redirect parameters
+    and safely fall back to /dashboard.
+    """
+    register_user(client)
+
+    malicious_targets = [
+        "https://evil.com",
+        "http://evil.com/phish",
+        "//evil.com",
+        "//evil.com/path",
+        "///evil.com",
+        "javascript:alert(document.cookie)",
+        "javascript:fetch('https://evil.com')",
+        "data:text/html;base64,PHNjcmlwdD4=",
+        "/\\evil.com",
+        "\\evil.com",
+        "evil.com/dashboard",
+    ]
+
+    for evil in malicious_targets:
+        # Get pre-login CSRF token
+        get_res = client.get(f"/login?next={evil}")
+        csrf_token = None
+        for line in get_res.data.decode("utf-8").splitlines():
+            if 'name="csrf_token"' in line:
+                csrf_token = line.split('value="')[1].split('"')[0]
+                break
+
+        response = client.post(
+            "/login",
+            data={
+                "email": "test@example.com",
+                "password": "Testpass123",
+                "next": evil,
+                "csrf_token": csrf_token or "token",
+            },
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+        location = response.headers["Location"]
+        assert "evil.com" not in location
+        assert "javascript:" not in location
+        assert location.endswith("/dashboard"), f"Failed for evil vector: {evil}, got {location}"

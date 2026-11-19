@@ -10,6 +10,9 @@ from urllib.parse import (
 )
 
 
+ALLOWED_PORTS = {80, 443, 8080, 8443, 5001}
+
+
 class UnsafeTargetError(ValueError):
     """
     Raised when a URL resolves to an address that
@@ -268,6 +271,11 @@ def normalize_target(raw_target):
         raise ValueError(
             "Target contains an invalid port."
         ) from error
+
+    if port is not None and port not in ALLOWED_PORTS:
+        raise ValueError(
+            f"Port {port} is not permitted. Only standard web ports (80, 443, 8080, 8443) are supported."
+        )
 
 
     # -----------------------------------------------------
@@ -532,6 +540,16 @@ def validate_network_destination(
                 f"{reason} network address: "
                 f"{address}"
             )
+
+        if ip_object.version == 6 and ip_object.ipv4_mapped:
+            if not ip_object.ipv4_mapped.is_global:
+                mapped_reason = describe_blocked_address(ip_object.ipv4_mapped)
+                raise UnsafeTargetError(
+                    "CyberRecon blocked the target "
+                    "because it resolves to a "
+                    f"{mapped_reason} network address: "
+                    f"{address}"
+                )
 
 
     return addresses

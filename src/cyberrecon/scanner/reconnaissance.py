@@ -501,6 +501,27 @@ def build_success_result(
         final_url
     )
 
+    parsed_target_url = urlsplit(
+        target_url
+    )
+
+    requested_scheme = (
+        parsed_target_url.scheme.lower()
+        if parsed_target_url.scheme
+        else "https"
+    )
+
+    effective_scheme = (
+        parsed_final_url.scheme.lower()
+        if parsed_final_url.scheme
+        else requested_scheme
+    )
+
+    scheme_downgrade = (
+        requested_scheme == "https"
+        and effective_scheme == "http"
+    )
+
 
     selected_headers = (
         collect_selected_headers(
@@ -546,6 +567,15 @@ def build_success_result(
 
         "final_url":
             final_url,
+
+        "requested_scheme":
+            requested_scheme,
+
+        "effective_scheme":
+            effective_scheme,
+
+        "scheme_downgrade":
+            scheme_downgrade,
 
         "https_enabled":
             (
@@ -626,7 +656,13 @@ def build_failure_result(
     except Exception:
 
         domain = "Unavailable"
+        parsed = None
 
+    fail_scheme = (
+        parsed.scheme.lower()
+        if parsed and parsed.scheme
+        else "unknown"
+    )
 
     return {
         "target":
@@ -646,6 +682,15 @@ def build_failure_result(
 
         "final_url":
             target_url,
+
+        "requested_scheme":
+            fail_scheme,
+
+        "effective_scheme":
+            fail_scheme,
+
+        "scheme_downgrade":
+            False,
 
         "https_enabled":
             False,

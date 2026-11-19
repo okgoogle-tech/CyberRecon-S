@@ -1,0 +1,232 @@
+/* =========================================================
+   CYBERRECON BASE STYLES
+   Reset, Typography, Container, View Transitions
+   ========================================================= */
+
+@view-transition {
+    navigation: auto;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+body {
+    min-height: 100vh;
+    width: 100%;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--leading-normal);
+    overflow-x: hidden;
+}
+
+/* Headings with Balanced Line Breaks */
+h1, h2, h3, h4, h5, h6,
+.heading-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: var(--font-size-2xl);
+    line-height: var(--leading-tight);
+}
+
+h2 {
+    font-size: var(--font-size-lg);
+    line-height: var(--leading-snug);
+}
+
+h3 {
+    font-size: var(--font-size-md);
+    line-height: var(--leading-snug);
+}
+
+h4 {
+    font-size: var(--font-size-base);
+    line-height: var(--leading-normal);
+}
+
+/* Monospace & Tabular Numerals */
+code, pre, kbd, samp,
+.mono, .font-mono {
+    font-family: var(--font-mono);
+    font-feature-settings: "liga" 0;
+}
+
+.tabular,
+.metric-value,
+.kpi-value,
+.timer,
+.score-number,
+.stat-number {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Paragraphs & Text */
+p {
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+}
+
+p.lead {
+    font-size: 18px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    text-wrap: balance;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--duration-micro) var(--ease-out-expo);
+}
+
+/* Screen Reader Utility (Accessible but Hidden from Visual Render) */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Common Utility Classes */
+.text-muted { color: var(--text-muted) !important; }
+.text-dim { color: var(--text-dim) !important; }
+.text-mint { color: var(--color-mint) !important; }
+.text-high { color: var(--sev-high) !important; }
+.text-amber { color: var(--sev-medium) !important; }
+.font-bold { font-weight: 700 !important; }
+
+/* Single Global Container (Max 1280px, consistent gutters) */
+.container,
+.site-container,
+.global-container {
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--container-gutter);
+    padding-right: var(--container-gutter);
+    box-sizing: border-box;
+}
+
+/* Visible Keyboard Focus Rings */
+:focus-visible {
+    outline: 2px solid var(--color-mint);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--color-mint);
+    outline-offset: 2px;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--surface-ink-950);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface-ink-800);
+    border-radius: var(--radius-full);
+    border: 2px solid var(--surface-ink-950);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Eyebrow Style (Single Canonical Definition) */
+.eyebrow,
+.tag-eyebrow,
+.cmd-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-mint);
+    margin-bottom: var(--space-3);
+}
+
+.eyebrow-dot,
+.tag-pulse,
+.cmd-eyebrow-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-mint);
+    box-shadow: 0 0 10px var(--color-mint);
+    flex-shrink: 0;
+}
+
+/* View Transition Motion Animation */
+::view-transition-old(root) {
+    animation: 200ms cubic-bezier(0.16, 1, 0.3, 1) both fade-out;
+}
+
+::view-transition-new(root) {
+    animation: 220ms cubic-bezier(0.16, 1, 0.3, 1) both fade-in;
+}
+
+@keyframes fade-out {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.995); }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: scale(1.005); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Full Reduced Motion variant for everything */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}

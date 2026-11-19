@@ -1,119 +1,35 @@
 {% extends "base.html" %}
 {% set active_page = "logout" %}
 
-{% block title %}Logout | CyberRecon{% endblock %}
-
-{% block extra_head %}
-    <style>
-        .auth-container {
-            width: min(460px, 92%);
-            margin: 60px auto 80px auto;
-        }
-
-        .auth-card {
-            padding: 36px 32px;
-            border: 1px solid var(--border-card, #cbd5e1);
-            border-radius: var(--radius-lg, 12px);
-            background: var(--surface, #ffffff);
-            color: var(--text-primary, #0f172a);
-            box-shadow: var(--shadow-card);
-        }
-
-        .auth-card h1 {
-            margin-top: 0;
-            color: var(--text-primary, #0f172a);
-        }
-
-        .logout-actions {
-            display: grid;
-            gap: 12px;
-            margin-top: 28px;
-        }
-
-        .logout-actions button,
-        .logout-actions a {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-            padding: 13px;
-            border-radius: var(--radius-sm, 7px);
-            text-align: center;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all var(--transition-fast);
-        }
-
-        .logout-actions button {
-            border: 0;
-            cursor: pointer;
-            background: var(--accent-emerald, #059669);
-            color: var(--text-on-accent, #ffffff);
-        }
-
-        .logout-actions button:hover {
-            filter: brightness(1.08);
-            transform: translateY(-1px);
-        }
-
-        .logout-actions a {
-            border: 1px solid var(--border-card, #cbd5e1);
-            background: var(--surface-raised, #f1f5f9);
-            color: var(--text-secondary, #475569);
-        }
-
-        .logout-actions a:hover {
-            color: var(--text-primary, #0f172a);
-            border-color: var(--border-card-hover, #94a3b8);
-        }
-
-        .logout-note {
-            margin-top: 18px;
-            color: var(--text-secondary, #64748b);
-            font-size: 12px;
-            line-height: 1.6;
-        }
-    </style>
-{% endblock %}
+{% block title %}Confirm Logout | CyberRecon{% endblock %}
 
 {% block content %}
-    <main class="auth-container">
-
-        <div class="auth-card">
-
-            <div class="tag">
-                SESSION SECURITY
-            </div>
-
-            <h1>
-                Confirm
-                <span>Logout.</span>
-            </h1>
-
-            <p class="subtitle">
-                End the current CyberRecon session?
-            </p>
-
-            <form method="POST" action="{{ url_for('logout') }}" class="logout-actions">
-
-                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-
-                <button type="submit">
-                    Confirm Logout
-                </button>
-
-                <a href="{{ url_for('dashboard') }}">
-                    Cancel
-                </a>
-
-            </form>
-
-            <p class="logout-note">
-                Logout is completed only through a
-                CSRF-protected POST request. Opening this
-                page does not modify the authenticated session.
-            </p>
-
+<main class="container" style="min-height: calc(100vh - 200px); display: flex; align-items: center; justify-content: center; padding: 40px 16px;">
+    <div class="card" style="max-width: 440px; width: 100%; padding: 40px 32px; text-align: center; border: 1px solid var(--border-hairline); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+        
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--surface-raised); border: 1px solid var(--border-hairline); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--text-dim);" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
         </div>
 
-    </main>
+        <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; margin-bottom: 8px;">
+            Confirm Sign Out
+        </h1>
+
+        <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 28px;">
+            Are you sure you want to end your active session on <strong>CyberRecon</strong>? Your assessment database and telemetry remain securely stored.
+        </p>
+
+        <form method="POST" action="{{ url_for('logout') }}" style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            
+            <button type="submit" class="btn-primary" style="padding: 12px; font-size: 14px; width: 100%; justify-content: center; background: var(--sev-critical); border-color: var(--sev-critical); color: #fff;">
+                Sign Out
+            </button>
+            
+            <a href="{{ url_for('dashboard') }}" class="btn-subtle" style="padding: 11px; font-size: 13.5px; width: 100%; justify-content: center;">
+                Cancel and Return to Dashboard
+            </a>
+        </form>
+    </div>
+</main>
 {% endblock %}

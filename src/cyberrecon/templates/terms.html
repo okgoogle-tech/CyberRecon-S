@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% set active_page = "terms" %}
+
+{% block title %}Terms of Responsible Use | CyberRecon{% endblock %}
+
+{% block content %}
+<main class="container" style="padding-top: var(--space-12); padding-bottom: var(--space-20); max-width: 780px;">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>LEGAL &amp; COMPLIANCE</div>
+    <h1 style="font-size: 36px; margin-bottom: var(--space-4);">Terms of Responsible Use</h1>
+    <p class="lead" style="margin-bottom: var(--space-8);">
+        CyberRecon is designed strictly for academic, defensive security analysis, and authorized configuration verification.
+    </p>
+
+    <div class="card" style="padding: 28px; margin-bottom: 24px;">
+        <h3 style="margin-bottom: 12px; color: var(--color-mint);">1. Mandatory Explicit Authorization</h3>
+        <p style="margin-bottom: 16px;">
+            You may only assess web targets that you own, operate, or have received formal, explicit, and written permission to evaluate. Conducting automated security reconnaissance against third-party systems without prior authorization may violate applicable cybercrime statutes (such as CFAA in the United States or equivalent international legislation).
+        </p>
+
+        <h3 style="margin-bottom: 12px; color: var(--color-mint);">2. Strictly Passive Architecture</h3>
+        <p style="margin-bottom: 16px;">
+            CyberRecon evaluates targets exclusively through standard HTTP/HTTPS requests, public certificate handshakes, and authoritative DNS queries. The platform will never inject exploitation payloads, execute path fuzzing, perform password brute-forcing, or launch Denial-of-Service attacks.
+        </p>
+
+        <h3 style="margin-bottom: 12px; color: var(--color-mint);">3. Enforced SSRF Boundaries</h3>
+        <p style="margin-bottom: 16px;">
+            To prevent Server-Side Request Forgery abuse, CyberRecon permanently blocks scans targeting private RFC 1918 subnets (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), loopback interfaces (127.0.0.1, localhost), link-local addresses, and cloud provider metadata endpoints (169.254.169.254).
+        </p>
+
+        <h3 style="margin-bottom: 12px; color: var(--color-mint);">4. Disclaimer of Warranty</h3>
+        <p>
+            Assessment results represent observed configuration states at the moment of evaluation. They provide defensive guidance and do not guarantee the total absence of web application vulnerabilities. CyberRecon is provided "as is" without warranty of any kind.
+        </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+        <a href="{{ url_for('home') }}" class="btn-subtle">&larr; Return to Home</a>
+    </div>
+</main>
+{% endblock %}

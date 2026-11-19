@@ -1,165 +1,326 @@
 {% extends "base.html" %}
+{% import "macros/ui.html" as ui %}
 {% set active_page = "history" %}
 
-{% block title %}Scan History | CyberRecon{% endblock %}
+{% block title %}Assessment History | CyberRecon{% endblock %}
 
 {% block content %}
-<main class="container">
+<div class="history-page-shell" style="padding-top: var(--space-8); padding-bottom: var(--space-20); width: 100%;">
 
-<section class="history-section">
+    <!-- Header Strip -->
+    <header class="cmd-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-6); flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div class="cmd-eyebrow" style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--color-mint); font-family: var(--font-mono); text-transform: uppercase;">
+                <span class="cmd-eyebrow-pulse" aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: var(--color-mint);"></span>
+                AUDIT LOGS
+            </div>
+            <h1 class="cmd-title" style="font-size: var(--text-3xl); font-weight: 800; color: var(--text-primary); margin: 4px 0 6px 0;">
+                Assessment <span>History</span>
+            </h1>
+            <p class="cmd-subtitle" style="font-size: var(--text-sm); color: var(--text-muted); margin: 0;">
+                Archived passive reconnaissance assessments, delta tracking, and security posture records.
+            </p>
+        </div>
 
-    <div class="tag">
-        ASSESSMENT DATABASE
-    </div>
-
-    <h1>
-        Scan <span>History.</span>
-    </h1>
-
-    <p class="subtitle">
-        Previous CyberRecon assessments stored
-        in the local project database.
-    </p>
-
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="{{ url_for('new_assessment') }}" class="btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                <span>+ New Assessment</span>
+            </a>
+        </div>
+    </header>
 
     {% if scans %}
+    <!-- Filter Bar & View Controls -->
+    <div class="history-controls-card card" style="padding: 14px 18px; margin-bottom: 16px; border: 1px solid var(--border-hairline); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+            <!-- Live Search -->
+            <input type="text" id="history-search" class="cmd-select" placeholder="Search by target or Scan ID..." aria-label="Search assessments" style="min-width: 240px; padding: 7px 12px;">
 
-    <div class="history-table-wrapper">
+            <!-- Status Filter -->
+            <select id="history-status-filter" class="cmd-select" aria-label="Filter by execution status">
+                <option value="all">All Statuses</option>
+                <option value="Completed">Completed</option>
+                <option value="Failed">Failed</option>
+            </select>
 
-        <table class="history-table">
+            <!-- Bulk Delete Trigger (Shown when rows selected) -->
+            <button type="button" id="btn-bulk-delete" class="btn-subtle" style="display: none; color: var(--sev-critical); border-color: rgba(239,68,68,0.3); font-size: 12px;">
+                Delete Selected (<span id="selected-delete-count">0</span>)
+            </button>
+        </div>
 
-            <thead>
+        <!-- View Toggle (Table vs Timeline) -->
+        <div class="timeframe-selector" role="group" aria-label="Display View">
+            <button type="button" class="timeframe-btn active" id="view-toggle-table" onclick="switchView('table')">Table</button>
+            <button type="button" class="timeframe-btn" id="view-toggle-timeline" onclick="switchView('timeline')">Timeline</button>
+        </div>
+    </div>
 
-                <tr>
-                    <th>SCAN ID</th>
-                    <th>TARGET</th>
-                    <th>STARTED</th>
-                    <th>STATUS</th>
-                    <th>FINDINGS</th>
-                    <th>SEVERITY</th>
-                </tr>
+    <!-- TABLE VIEW -->
+    <div id="history-table-container" class="card" style="border: 1px solid var(--border-hairline); border-radius: var(--radius-md); overflow: hidden;">
+        <div style="overflow-x: auto; width: 100%;">
+            <table class="cmd-dense-table" id="history-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-hairline); background: var(--surface-raised); font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">
+                        <th style="padding: 12px 14px; width: 36px; text-align: center;">
+                            <input type="checkbox" id="select-all-scans" aria-label="Select all assessments">
+                        </th>
+                        <th style="padding: 12px 14px;">SCAN ID</th>
+                        <th style="padding: 12px 14px;">TARGET</th>
+                        <th style="padding: 12px 14px;">TIMESTAMP</th>
+                        <th style="padding: 12px 14px;">STATUS</th>
+                        <th style="padding: 12px 14px;">DEFICIENCIES</th>
+                        <th style="padding: 12px 14px; text-align: right;">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table-body">
+                    {% for scan in scans %}
+                    <tr class="history-row" data-target="{{ scan.target|lower }}" data-scan-id="{{ scan.scan_id|lower }}" data-status="{{ scan.recon_status }}">
+                        <td style="padding: 12px 14px; text-align: center;">
+                            <input type="checkbox" class="scan-checkbox" value="{{ scan.scan_id }}" data-target="{{ scan.target }}" aria-label="Select scan {{ scan.scan_id }}">
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <a href="{{ url_for('scan_detail', scan_id=scan.scan_id) }}" style="color: var(--color-mint); font-family: var(--font-mono); font-weight: 700; text-decoration: none;">
+                                {{ scan.scan_id }}
+                            </a>
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <strong style="color: var(--text-primary); font-family: var(--font-mono); font-size: 13px;">{{ scan.target }}</strong>
+                        </td>
+                        <td style="padding: 12px 14px; color: var(--text-muted); font-size: 12px;">
+                            {{ scan.started_at }}
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            {% if scan.recon_status == 'Completed' %}
+                            <span class="badge badge-pass">Completed</span>
+                            {% else %}
+                            <span class="badge badge-critical">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <span class="tabular font-bold" style="color: var(--text-primary);">{{ scan.total_findings }}</span>
+                            <span style="font-size: 11px; color: var(--text-dim);">({{ scan.high_count }}H &bull; {{ scan.medium_count }}M)</span>
+                        </td>
+                        <td style="padding: 12px 14px; text-align: right;">
+                            <div style="display: inline-flex; gap: 6px;">
+                                <a href="{{ url_for('scan_detail', scan_id=scan.scan_id) }}" class="btn-subtle" style="padding: 3px 8px; font-size: 11px;">Report</a>
+                                <a href="{{ url_for('new_assessment', target=scan.target) }}" class="btn-subtle" style="padding: 3px 8px; font-size: 11px;">Reassess</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            </thead>
+        <!-- Pagination Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-top: 1px solid var(--border-hairline); background: var(--surface-raised); font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">
+            <span id="pagination-info">Showing all {{ scans|length }} records</span>
+            <div style="display: flex; gap: 6px;">
+                <button type="button" id="btn-prev-page" class="btn-subtle" style="padding: 3px 8px; font-size: 11px;" disabled>&larr; Prev</button>
+                <button type="button" id="btn-next-page" class="btn-subtle" style="padding: 3px 8px; font-size: 11px;" disabled>Next &rarr;</button>
+            </div>
+        </div>
+    </div>
 
-
-            <tbody>
-
+    <!-- TIMELINE VIEW -->
+    <div id="history-timeline-container" style="display: none; margin-top: 16px;">
+        <div style="position: relative; padding-left: 24px; border-left: 2px solid var(--border-hairline); margin-left: 12px;">
             {% for scan in scans %}
-
-                <tr>
-
-                    <td>
-
-                        <a
-                            href="{{ url_for('scan_detail', scan_id=scan.scan_id) }}"
-                            class="scan-code scan-link"
-                        >
-                            {{ scan.scan_id }}
-                        </a>
-
-                    </td>
-
-                    <td>
-                        {{ scan.target }}
-                    </td>
-
-                    <td>
-                        {{ scan.started_at }}
-                    </td>
-
-                    <td>
-
-                        {% if scan.recon_status == "Completed" %}
-
-                        <span class="history-status success">
-                            Completed
-                        </span>
-
-                        {% else %}
-
-                        <span class="history-status failed-text">
-                            Failed
-                        </span>
-
-                        {% endif %}
-
-                    </td>
-
-                    <td>
-                        {{ scan.total_findings }}
-                    </td>
-
-                    <td>
-
-                        <div class="mini-severity">
-
-                            {% if scan.high_count %}
-                            <span class="mini-high">
-                                H {{ scan.high_count }}
-                            </span>
-                            {% endif %}
-
-                            {% if scan.medium_count %}
-                            <span class="mini-medium">
-                                M {{ scan.medium_count }}
-                            </span>
-                            {% endif %}
-
-                            {% if scan.low_count %}
-                            <span class="mini-low">
-                                L {{ scan.low_count }}
-                            </span>
-                            {% endif %}
-
-                            {% if scan.info_count %}
-                            <span class="mini-info">
-                                I {{ scan.info_count }}
-                            </span>
-                            {% endif %}
-
-                        </div>
-
-                    </td>
-
-                </tr>
-
+            <article class="timeline-item card" style="padding: 16px 20px; margin-bottom: 16px; position: relative;">
+                <div style="position: absolute; left: -31px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--color-mint); box-shadow: 0 0 8px var(--color-mint);"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <strong style="color: var(--text-primary); font-family: var(--font-mono); font-size: 14px;">{{ scan.target }}</strong>
+                        <span style="color: var(--text-dim); font-size: 11px; margin-left: 8px;">ID: {{ scan.scan_id }}</span>
+                    </div>
+                    <span style="font-size: 12px; color: var(--text-muted); font-family: var(--font-mono);">{{ scan.started_at }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                    <span style="font-size: 13px; color: var(--text-secondary);">
+                        Deficiencies: <strong>{{ scan.total_findings }}</strong> ({{ scan.high_count }} High &bull; {{ scan.medium_count }} Medium)
+                    </span>
+                    <a href="{{ url_for('scan_detail', scan_id=scan.scan_id) }}" class="btn-subtle" style="padding: 4px 10px; font-size: 11px;">View Report &rarr;</a>
+                </div>
+            </article>
             {% endfor %}
+        </div>
+    </div>
 
-            </tbody>
-
-        </table>
-
+    <!-- Floating Compare Action Bar (Shown when 1 or 2 scans selected) -->
+    <div id="floating-compare-bar" style="display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface-overlay); border: 1px solid var(--color-mint); box-shadow: var(--shadow-lg); border-radius: var(--radius-md); padding: 12px 20px; z-index: 99; align-items: center; gap: 16px;">
+        <span style="font-size: 13px; font-weight: 600; color: var(--text-primary);">
+            <span id="compare-count-text">0</span> assessments selected
+        </span>
+        <button type="button" id="btn-execute-compare" class="btn-primary" style="padding: 6px 14px; font-size: 12px;" disabled>
+            Compare Selected &rarr;
+        </button>
+        <button type="button" id="btn-clear-selection" class="btn-subtle" style="padding: 6px 10px; font-size: 12px;">
+            Clear
+        </button>
     </div>
 
     {% else %}
-
-    <div class="no-history">
-
-        No assessments have been stored yet.
-
-        Run a CyberRecon assessment to create
-        the first history entry.
-
+    <!-- Designed Empty State -->
+    <div class="card" style="padding: 48px 32px; text-align: center; border: 1px solid var(--border-hairline); border-radius: var(--radius-md);">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--color-mint-subtle); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">No Scan History Recorded</h2>
+        <p style="color: var(--text-muted); font-size: 14px; max-width: 480px; margin: 0 auto 24px auto; line-height: 1.5;">
+            You have not executed any assessments yet. Run your first non-intrusive reconnaissance assessment to build your audit log.
+        </p>
+        <a href="{{ url_for('new_assessment') }}" class="btn-primary" style="padding: 9px 20px; font-size: 13px;">
+            Launch First Assessment &rarr;
+        </a>
     </div>
-
     {% endif %}
 
-    <a
-        href="{{ url_for('compare_scans') }}"
-        class="back-button"
-    >
-        Compare Assessments
-    </a>
-
-
-    <a
-        href="{{ url_for('new_assessment') }}"
-        class="back-button"
-    >
-        ← New Assessment
-    </a>
-
-</section>
-
 </main>
+
+<!-- Bulk Delete Confirmation Form -->
+<form id="bulk-delete-form" method="POST" action="{{ url_for('history_bulk_delete_action') }}" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div id="bulk-delete-inputs"></div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var searchInput = document.getElementById('history-search');
+    var statusFilter = document.getElementById('history-status-filter');
+    var rows = document.querySelectorAll('.history-row');
+    var selectAll = document.getElementById('select-all-scans');
+    var checkboxes = document.querySelectorAll('.scan-checkbox');
+    var compareBar = document.getElementById('floating-compare-bar');
+    var compareCount = document.getElementById('compare-count-text');
+    var btnCompare = document.getElementById('btn-execute-compare');
+    var btnClear = document.getElementById('btn-clear-selection');
+    var btnBulkDelete = document.getElementById('btn-bulk-delete');
+    var deleteCount = document.getElementById('selected-delete-count');
+
+    // 1. Live Filtering
+    function filterHistory() {
+        var q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        var s = statusFilter ? statusFilter.value : 'all';
+
+        rows.forEach(function (row) {
+            var target = row.getAttribute('data-target') || '';
+            var scanId = row.getAttribute('data-scan-id') || '';
+            var status = row.getAttribute('data-status') || '';
+
+            var matchQ = !q || target.indexOf(q) !== -1 || scanId.indexOf(q) !== -1;
+            var matchS = (s === 'all') || (status === s);
+
+            row.style.display = (matchQ && matchS) ? '' : 'none';
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterHistory);
+    if (statusFilter) statusFilter.addEventListener('change', filterHistory);
+
+    // 2. Multi-Select for Compare & Delete
+    function updateSelection() {
+        var selected = Array.from(checkboxes).filter(function (cb) { return cb.checked; });
+        var count = selected.length;
+
+        if (count > 0) {
+            compareBar.style.display = 'flex';
+            compareCount.textContent = count;
+            btnCompare.disabled = (count !== 2);
+
+            btnBulkDelete.style.display = 'inline-flex';
+            deleteCount.textContent = count;
+        } else {
+            compareBar.style.display = 'none';
+            btnBulkDelete.style.display = 'none';
+        }
+    }
+
+    checkboxes.forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            var selected = Array.from(checkboxes).filter(function (c) { return c.checked; });
+            if (selected.length > 2) {
+                this.checked = false;
+                alert('You can select a maximum of 2 assessments to compare.');
+            }
+            updateSelection();
+        });
+    });
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            var checkState = this.checked;
+            var c = 0;
+            checkboxes.forEach(function (cb) {
+                if (c < 2 && checkState) {
+                    cb.checked = true;
+                    c++;
+                } else if (!checkState) {
+                    cb.checked = false;
+                }
+            });
+            updateSelection();
+        });
+    }
+
+    if (btnClear) {
+        btnClear.addEventListener('click', function () {
+            checkboxes.forEach(function (cb) { cb.checked = false; });
+            if (selectAll) selectAll.checked = false;
+            updateSelection();
+        });
+    }
+
+    if (btnCompare) {
+        btnCompare.addEventListener('click', function () {
+            var selected = Array.from(checkboxes).filter(function (cb) { return cb.checked; });
+            if (selected.length === 2) {
+                var url = "{{ url_for('compare_scans') }}?baseline=" + encodeURIComponent(selected[1].value) + "&current=" + encodeURIComponent(selected[0].value);
+                window.location.href = url;
+            }
+        });
+    }
+
+    // 3. Bulk Delete
+    if (btnBulkDelete) {
+        btnBulkDelete.addEventListener('click', function () {
+            var selected = Array.from(checkboxes).filter(function (cb) { return cb.checked; });
+            if (!selected.length) return;
+            if (!confirm('Are you sure you want to delete ' + selected.length + ' selected assessments?')) return;
+
+            var container = document.getElementById('bulk-delete-inputs');
+            container.innerHTML = '';
+            selected.forEach(function (cb) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'scan_ids';
+                input.value = cb.value;
+                container.appendChild(input);
+            });
+            document.getElementById('bulk-delete-form').submit();
+        });
+    }
+});
+
+function switchView(view) {
+    var tableWrap = document.getElementById('history-table-container');
+    var timelineWrap = document.getElementById('history-timeline-container');
+    var btnTable = document.getElementById('view-toggle-table');
+    var btnTimeline = document.getElementById('view-toggle-timeline');
+
+    if (view === 'table') {
+        tableWrap.style.display = 'block';
+        timelineWrap.style.display = 'none';
+        btnTable.classList.add('active');
+        btnTimeline.classList.remove('active');
+    } else {
+        tableWrap.style.display = 'none';
+        timelineWrap.style.display = 'block';
+        btnTimeline.classList.add('active');
+        btnTable.classList.remove('active');
+    }
+}
+</script>
 {% endblock %}

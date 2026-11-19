@@ -1,0 +1,237 @@
+/* =========================================================
+   CYBERRECON SIGNATURE IDENTITY & MOTIFS
+   PostureRing, SignalLine, Aurora Mesh, Cursor Spotlight
+   ========================================================= */
+
+/* =========================================================
+   1. POSTURE RING (Thin Animated Score Ring)
+   ========================================================= */
+
+.posture-ring-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ring-size, 140px);
+    height: var(--ring-size, 140px);
+    flex-shrink: 0;
+}
+
+.posture-ring-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.posture-ring-track {
+    fill: none;
+    stroke: var(--surface-ink-800);
+    stroke-width: var(--ring-stroke, 5);
+}
+
+.posture-ring-fill {
+    fill: none;
+    stroke: var(--ring-color, var(--color-mint));
+    stroke-width: var(--ring-stroke, 5);
+    stroke-linecap: round;
+    stroke-dasharray: 283; /* 2 * PI * 45 */
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 1200ms var(--ease-out-expo), stroke 400ms ease;
+    filter: drop-shadow(0 0 6px var(--ring-glow, var(--color-mint-glow)));
+}
+
+.posture-ring-fill.animated {
+    animation: ring-draw 1.2s var(--ease-out-expo) forwards;
+}
+
+.posture-ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+}
+
+.posture-ring-grade {
+    font-family: var(--font-display);
+    font-size: var(--grade-size, 38px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--ring-color, var(--text-primary));
+}
+
+.posture-ring-score {
+    font-family: var(--font-mono);
+    font-size: var(--score-size, 13px);
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Tasteful Pulse on Grade Improvement (No confetti) */
+@keyframes ring-mint-pulse {
+    0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(16, 185, 129, 0)); }
+    50% { transform: scale(1.025); filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.6)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 6px var(--color-mint-glow)); }
+}
+
+.posture-ring-wrap.pulse-improve {
+    animation: ring-mint-pulse 1.4s var(--ease-out-expo);
+}
+
+/* =========================================================
+   2. MINT SIGNAL LINE (1px Glowing Connecting Motif)
+   ========================================================= */
+
+.signal-line-horizontal {
+    position: relative;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        rgba(16, 185, 129, 0) 0%,
+        var(--color-mint) 35%,
+        var(--color-mint) 65%,
+        rgba(16, 185, 129, 0) 100%
+    );
+    box-shadow: 0 0 12px var(--color-mint-glow);
+    opacity: 0.85;
+}
+
+.signal-line-vertical {
+    position: relative;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(
+        180deg,
+        rgba(16, 185, 129, 0) 0%,
+        var(--color-mint) 25%,
+        var(--color-mint) 75%,
+        rgba(16, 185, 129, 0) 100%
+    );
+    box-shadow: 0 0 12px var(--color-mint-glow);
+    opacity: 0.85;
+}
+
+/* Scroll-linked Signal Line via SVG pathLength */
+.signal-path-svg {
+    position: absolute;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.signal-path {
+    stroke: var(--color-mint);
+    stroke-width: 1.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    filter: drop-shadow(0 0 8px var(--color-mint-glow));
+    transition: stroke-dashoffset 800ms var(--ease-out-expo);
+}
+
+.signal-path.drawn {
+    stroke-dashoffset: 0;
+}
+
+/* =========================================================
+   3. AURORA MESH GRADIENT & CURSOR SPOTLIGHT
+   ========================================================= */
+
+.aurora-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.aurora-mesh {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1200px;
+    height: 600px;
+    background: radial-gradient(
+        50% 50% at 50% 50%,
+        rgba(16, 185, 129, 0.12) 0%,
+        rgba(14, 165, 233, 0.08) 40%,
+        rgba(99, 102, 241, 0.04) 70%,
+        transparent 100%
+    );
+    filter: blur(80px);
+    opacity: 0.75;
+    animation: aurora-drift 18s ease-in-out infinite alternate;
+}
+
+[data-theme="light"] .aurora-mesh {
+    background: radial-gradient(
+        50% 50% at 50% 50%,
+        rgba(5, 150, 105, 0.10) 0%,
+        rgba(2, 132, 199, 0.06) 40%,
+        rgba(99, 102, 241, 0.03) 70%,
+        transparent 100%
+    );
+    opacity: 0.5;
+}
+
+@keyframes aurora-drift {
+    0% { transform: translateX(-52%) scale(0.98); }
+    100% { transform: translateX(-48%) scale(1.05); }
+}
+
+/* Faint Dotted Grid Overlay */
+.grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black 20%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+[data-theme="light"] .grid-overlay {
+    background-image: radial-gradient(rgba(15, 23, 42, 0.06) 1px, transparent 1px);
+}
+
+/* Cursor Follow Spotlight */
+.cursor-spotlight-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(16, 185, 129, 0.06),
+        transparent 40%
+    );
+}
+
+[data-theme="light"] .cursor-spotlight-layer {
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(5, 150, 105, 0.04),
+        transparent 40%
+    );
+}
+
+/* Reduced motion fallbacks */
+@media (prefers-reduced-motion: reduce) {
+    .aurora-mesh {
+        animation: none;
+    }
+    .posture-ring-fill {
+        transition: none;
+    }
+    .signal-path {
+        stroke-dashoffset: 0 !important;
+        transition: none !important;
+    }
+}

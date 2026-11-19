@@ -1,0 +1,259 @@
+/* =========================================================
+   CYBERRECON DESIGN TOKENS
+   Version: 2.0 (Linear / Raycast / Vercel Quality Bar)
+   ========================================================= */
+
+:root {
+    /* Color Scheme & Mode */
+    color-scheme: dark;
+
+    /* Surfaces: Deep Navy-Black Layering (Dark Mode) */
+    --surface-ink-950: #05080f;     /* Deep base layer */
+    --surface-ink-900: #0a111e;     /* Elevated panels & cards */
+    --surface-ink-850: #101a2d;     /* High-surface, active states, dialogs */
+    --surface-ink-800: #16243d;     /* Popovers, menus, hovers */
+    --surface-input:   #070d18;     /* Inset inputs */
+
+    /* Universal Aliases for Backwards Compatibility */
+    --bg-base: var(--surface-ink-950);
+    --surface: var(--surface-ink-900);
+    --surface-raised: var(--surface-ink-850);
+    --surface-card: rgba(10, 17, 30, 0.88);
+    --surface-card-hover: rgba(16, 26, 45, 0.96);
+    --surface-card-subtle: rgba(10, 17, 30, 0.55);
+    --bg-input: var(--surface-input);
+
+    /* Hairline Borders (6-10% white in dark mode) */
+    --hairline: rgba(255, 255, 255, 0.08);
+    --hairline-subtle: rgba(255, 255, 255, 0.05);
+    --hairline-strong: rgba(255, 255, 255, 0.14);
+    --border-subtle: var(--hairline-subtle);
+    --border-card: var(--hairline);
+    --border-card-hover: var(--hairline-strong);
+    --border-strong: var(--hairline-strong);
+
+    /* Inner Highlights (Soft depth instead of heavy shadows) */
+    --inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --inner-highlight-subtle: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+    --shadow-card: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+    --shadow-popover: 0 16px 48px -8px rgba(0, 0, 0, 0.65);
+
+    /* ONE Mint Signal Color (Primary CTAs, Active, Success, Posture Anchor) */
+    --color-mint: #10b981;
+    --color-mint-hover: #059669;
+    --color-mint-active: #047857;
+    --color-mint-glow: rgba(16, 185, 129, 0.25);
+    --color-mint-subtle: rgba(16, 185, 129, 0.08);
+    --color-mint-border: rgba(16, 185, 129, 0.35);
+
+    /* Cyan: Info Only (Technical tags, metadata badges, inspection lines) */
+    --color-cyan: #0ea5e9;
+    --color-cyan-hover: #0284c7;
+    --color-cyan-glow: rgba(14, 165, 233, 0.22);
+    --color-cyan-subtle: rgba(14, 165, 233, 0.08);
+    --color-cyan-border: rgba(14, 165, 233, 0.32);
+
+    /* Strict Severity Palette (Identical in every badge, chart, and row) */
+    --sev-critical: #ef4444;
+    --sev-critical-bg: rgba(239, 68, 68, 0.10);
+    --sev-critical-border: rgba(239, 68, 68, 0.30);
+
+    --sev-high: #f97316;
+    --sev-high-bg: rgba(249, 115, 22, 0.10);
+    --sev-high-border: rgba(249, 115, 22, 0.30);
+
+    --sev-medium: #eab308;
+    --sev-medium-bg: rgba(234, 179, 8, 0.10);
+    --sev-medium-border: rgba(234, 179, 8, 0.30);
+
+    --sev-low: #3b82f6;
+    --sev-low-bg: rgba(59, 130, 246, 0.10);
+    --sev-low-border: rgba(59, 130, 246, 0.30);
+
+    --sev-info: #64748b;
+    --sev-info-bg: rgba(100, 116, 139, 0.12);
+    --sev-info-border: rgba(100, 116, 139, 0.30);
+
+    --sev-pass: #10b981;
+    --sev-pass-bg: rgba(16, 185, 129, 0.10);
+    --sev-pass-border: rgba(16, 185, 129, 0.30);
+
+    /* Aliases */
+    --color-critical: var(--sev-critical);
+    --color-high: var(--sev-high);
+    --color-medium: var(--sev-medium);
+    --color-low: var(--sev-low);
+    --color-info: var(--sev-info);
+    --color-pass: var(--sev-pass);
+
+    /* Typography & Contrast Colors (Dark Mode WCAG AA) */
+    --text-primary: #f8fafc;        /* 15.8:1 contrast on ink-950 */
+    --text-secondary: #94a3b8;      /* 6.3:1 contrast on ink-950 */
+    --text-muted: #64748b;          /* 4.6:1 contrast on ink-950 (meets WCAG AA) */
+    --text-dim: var(--text-muted);
+    --text-on-accent: #02120a;
+
+    /* Font Stacks */
+    --font-display: "Inter Tight", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* Typography Scale: 12 / 14 / 16 / 20 / 28 / 40 / 64 / 88 */
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-md: 20px;
+    --font-size-lg: 28px;
+    --font-size-xl: 40px;
+    --font-size-2xl: 64px;
+    --font-size-hero: 88px;
+
+    /* Line Heights */
+    --leading-tight: 1.05;
+    --leading-snug: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.65;
+
+    /* Radius Scale: 8 / 12 / 16 / 24 / Full */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* 4px Spacing Grid */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+
+    /* Global Container */
+    --container-max-width: 1280px;
+    --container-max: 1280px;
+    --container-gutter: clamp(16px, 4vw, 32px);
+
+    /* Typography Scale Aliases */
+    --text-xs: 12px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-md: 16px;
+    --text-lg: 18px;
+    --text-xl: 20px;
+    --text-2xl: 24px;
+    --text-3xl: 30px;
+    --text-4xl: 36px;
+    --font-main: var(--font-sans);
+
+    /* Radius & Border Aliases */
+    --radius-xs: 4px;
+    --border-hairline: var(--hairline);
+    --border-hairline-subtle: var(--hairline-subtle);
+
+    /* Surface & Shadow Aliases */
+    --surface-overlay: var(--surface-ink-800);
+    --bg-card: var(--surface-card);
+    --shadow-md: var(--shadow-card);
+
+    /* Motion Curves & Durations */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-micro: 180ms;
+    --duration-fast: 220ms;
+    --duration-base: 320ms;
+    --duration-reveal: 600ms;
+    --duration-slow: 750ms;
+}
+
+/* =========================================================
+   LIGHT THEME EQUIVALENTS (WCAG AA Calibrated)
+   ========================================================= */
+
+[data-theme="light"] {
+    color-scheme: light;
+
+    /* Surfaces: Clean Studio Layering (Light Mode) */
+    --surface-ink-950: #f8fafc;     /* Crisp canvas */
+    --surface-ink-900: #ffffff;     /* Elevated pure white card */
+    --surface-ink-850: #f1f5f9;     /* Subtle active panel */
+    --surface-ink-800: #e2e8f0;     /* Stronger contrast border/hover */
+    --surface-input:   #ffffff;
+
+    --bg-base: var(--surface-ink-950);
+    --surface: var(--surface-ink-900);
+    --surface-raised: var(--surface-ink-850);
+    --surface-card: rgba(255, 255, 255, 0.94);
+    --surface-card-hover: #ffffff;
+    --surface-card-subtle: rgba(248, 250, 252, 0.9);
+    --bg-input: #ffffff;
+
+    /* Hairline Borders (Crisp slate) */
+    --hairline: #e2e8f0;
+    --hairline-subtle: #edf2f7;
+    --hairline-strong: #cbd5e1;
+    --border-subtle: var(--hairline-subtle);
+    --border-card: var(--hairline);
+    --border-card-hover: var(--hairline-strong);
+    --border-strong: var(--hairline-strong);
+
+    /* Inner Highlights */
+    --inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --inner-highlight-subtle: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    --shadow-subtle: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --shadow-card: 0 6px 20px -2px rgba(15, 23, 42, 0.08);
+    --shadow-popover: 0 16px 40px -6px rgba(15, 23, 42, 0.14);
+
+    /* Typography (WCAG AA) */
+    --text-primary: #0f172a;        /* 15.5:1 contrast */
+    --text-secondary: #334155;      /* 9.4:1 contrast */
+    --text-muted: #64748b;          /* 4.6:1 contrast (passes AA) */
+    --text-dim: var(--text-muted);
+    --text-on-accent: #ffffff;
+
+    /* Mint Signal in Light Mode (Calibrated for white contrast) */
+    --color-mint: #059669;
+    --color-mint-hover: #047857;
+    --color-mint-active: #065f46;
+    --color-mint-glow: rgba(5, 150, 105, 0.20);
+    --color-mint-subtle: rgba(5, 150, 105, 0.08);
+    --color-mint-border: rgba(5, 150, 105, 0.35);
+
+    /* Cyan */
+    --color-cyan: #0284c7;
+    --color-cyan-hover: #0369a1;
+    --color-cyan-glow: rgba(2, 132, 199, 0.18);
+    --color-cyan-subtle: rgba(2, 132, 199, 0.08);
+    --color-cyan-border: rgba(2, 132, 199, 0.30);
+
+    /* Severity Colors (Calibrated for light backgrounds) */
+    --sev-critical: #dc2626;
+    --sev-critical-bg: rgba(220, 38, 38, 0.08);
+    --sev-critical-border: rgba(220, 38, 38, 0.28);
+
+    --sev-high: #ea580c;
+    --sev-high-bg: rgba(234, 88, 12, 0.08);
+    --sev-high-border: rgba(234, 88, 12, 0.28);
+
+    --sev-medium: #d97706;
+    --sev-medium-bg: rgba(217, 119, 6, 0.08);
+    --sev-medium-border: rgba(217, 119, 6, 0.28);
+
+    --sev-low: #2563eb;
+    --sev-low-bg: rgba(37, 99, 235, 0.08);
+    --sev-low-border: rgba(37, 99, 235, 0.28);
+
+    --sev-info: #475569;
+    --sev-info-bg: rgba(71, 85, 105, 0.08);
+    --sev-info-border: rgba(71, 85, 105, 0.28);
+
+    --sev-pass: #059669;
+    --sev-pass-bg: rgba(5, 150, 105, 0.08);
+    --sev-pass-border: rgba(5, 150, 105, 0.28);
+}

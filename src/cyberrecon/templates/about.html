@@ -1,0 +1,681 @@
+{% extends "base.html" %}
+{% set active_page = "about" %}
+
+{% block title %}About &amp; Methodology | CyberRecon{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/about.css') }}?v=2.0">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is passive security reconnaissance legal?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, when conducted against systems you own or have explicit authorization to assess. CyberRecon performs strictly non-intrusive evaluations by requesting standard HTTP headers, inspecting public TLS certificates, and querying authoritative DNS records without injecting exploit payloads or bypassing access controls."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What counts as strictly passive evaluation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Passive reconnaissance does not probe for software vulnerabilities, inject malicious payloads, brute-force credentials, fuzz URI paths, or stress server infrastructure. It observes public responses and configurations returned in standard HTTP/HTTPS handshakes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are assessment targets or scan results stored externally?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. CyberRecon operates as a self-contained application. All scan records, configuration audits, and historical diffs are stored exclusively in your local database, isolated strictly to your authenticated user account."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why was my target hostname or IP address blocked?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CyberRecon enforces mandatory Server-Side Request Forgery (SSRF) boundary safeguards. Requests to loopback addresses (127.0.0.1, localhost), private RFC 1918 subnets (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), link-local ranges (169.254.0.0/16), and cloud metadata endpoints are unconditionally blocked before any socket connection is opened."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is the security posture grade and numerical score calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Every assessment begins at 100 points. Penalties are calculated using a diminishing-returns model (High 20 points, Medium 8/6/4 points, Low 3/2/1 points, Info 0 points) with category caps so multiple minor misconfigurations do not unfairly collapse your score. Letter grades map cleanly: A (90-100), B (80-89), C (70-79), D (60-69), and F (below 60)."
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<main class="container">
+    <div class="about-page-layout">
+
+        <!-- Sticky Table of Contents (Left Rail) -->
+        <aside class="about-toc-sidebar" aria-label="Table of Contents">
+            <div class="toc-heading">On This Page</div>
+            <ul class="toc-nav-list" id="toc-nav-list">
+                <li><a href="#overview" class="toc-link active">1. Overview</a></li>
+                <li><a href="#how-it-works" class="toc-link">2. How It Works</a></li>
+                <li><a href="#checks" class="toc-link">3. The 18 Checks</a></li>
+                <li><a href="#scoring" class="toc-link">4. How Scoring Works</a></li>
+                <li><a href="#responsible-use" class="toc-link">5. Responsible Use &amp; SSRF</a></li>
+                <li><a href="#faq" class="toc-link">6. Frequently Asked Questions</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Column (Max 760px) -->
+        <div class="about-content-col">
+
+            <!-- 1. OVERVIEW -->
+            <section id="overview" class="about-section">
+                <div class="eyebrow"><span class="eyebrow-dot"></span>PLATFORM OVERVIEW</div>
+                <h2 class="about-section-h2">Discover. Analyze. Understand.</h2>
+                <div class="about-section-desc">
+                    <p style="margin-bottom: 14px;">
+                        <strong>CyberRecon</strong> is a passive security reconnaissance and defensive configuration scanner built specifically for authorized HTTP and HTTPS targets. It eliminates the blind spots between complex cloud deployments, reverse proxies, and browser security policies by inspecting real-world web response characteristics without generating hostile traffic.
+                    </p>
+                    <p>
+                        Designed for security engineers, system administrators, and developers, CyberRecon evaluates TLS certificates, HTTP response headers, cookie flags, and cross-origin boundaries. By observing standard protocol handshakes rather than injecting attack vectors, the platform guarantees zero system downtime and zero service interference.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 2. HOW IT WORKS: 3-STAGE PIPELINE -->
+            <section id="how-it-works" class="about-section">
+                <div class="eyebrow"><span class="eyebrow-dot"></span>EXECUTION PIPELINE</div>
+                <h2 class="about-section-h2">How It Works: The 3-Stage Pipeline</h2>
+                <p class="about-section-desc">
+                    Every assessment follows a deterministic, non-intrusive evaluation sequence designed to guarantee safety before network transmission.
+                </p>
+
+                <div class="pipeline-timeline">
+                    <div class="pipeline-timeline-line"></div>
+
+                    <!-- Stage 1 -->
+                    <div class="pipeline-stage">
+                        <div class="pipeline-stage-dot">1</div>
+                        <h3 class="pipeline-stage-title">Boundary Guard &amp; Input Validation</h3>
+                        <p class="pipeline-stage-body">
+                            The target is strictly normalized to an absolute URL. Authoritative DNS resolution validates host reachability while active Server-Side Request Forgery (SSRF) boundary guards immediately reject loopback (127.0.0.1, localhost), private RFC 1918 subnets, and cloud metadata endpoints before establishing a socket connection.
+                        </p>
+                    </div>
+
+                    <!-- Stage 2 -->
+                    <div class="pipeline-stage">
+                        <div class="pipeline-stage-dot">2</div>
+                        <h3 class="pipeline-stage-title">Passive Reconnaissance Probe</h3>
+                        <p class="pipeline-stage-body">
+                            CyberRecon executes a controlled, safe HTTP/HTTPS GET request over standard browser ports. It inspects public TLS handshakes, measures round-trip response latency, traces redirect chains, and captures HTTP response headers and cookie flags without sending fuzzing or exploitation payloads.
+                        </p>
+                    </div>
+
+                    <!-- Stage 3 -->
+                    <div class="pipeline-stage">
+                        <div class="pipeline-stage-dot">3</div>
+                        <h3 class="pipeline-stage-title">Synthesis, Scoring &amp; Remediation</h3>
+                        <p class="pipeline-stage-body">
+                            The captured response is evaluated against the 18-rule security engine. Findings are categorized across 4 high-level security domains, mapped to CWE and OWASP standards, scored via the diminishing-returns posture formula, and paired with copy-paste web server remediation snippets.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. THE 18 CHECKS (Anchor #checks) -->
+            <section id="checks" class="about-section">
+                <div class="eyebrow"><span class="eyebrow-dot"></span>SECURITY CHECK CATALOG</div>
+                <h2 class="about-section-h2">The 18 Passive Checks</h2>
+                <p class="about-section-desc">
+                    CyberRecon performs exactly 18 non-intrusive checks across 4 security domains. Select any check below to view its security impact, evaluation criteria, and web server remediation code.
+                </p>
+
+                <div class="catalog-controls">
+                    <!-- Search Input -->
+                    <div class="catalog-search-wrap">
+                        <svg class="catalog-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="catalog-search" class="catalog-search-input" placeholder="Search checks by ID, name, CWE, or keyword..." autocomplete="off">
+                    </div>
+
+                    <!-- Category Filter Pills (Derived from registry) -->
+                    <div class="filter-pills-row" id="category-filters">
+                        <button type="button" class="filter-pill active" data-category="all">All (18)</button>
+                        <button type="button" class="filter-pill" data-category="Transport Security">Transport Security ({{ category_counts['Transport Security'] }})</button>
+                        <button type="button" class="filter-pill" data-category="Browser & Headers">Browser &amp; Headers ({{ category_counts['Browser & Headers'] }})</button>
+                        <button type="button" class="filter-pill" data-category="Cross-Origin Security">Cross-Origin Security ({{ category_counts['Cross-Origin Security'] }})</button>
+                        <button type="button" class="filter-pill" data-category="Session & Disclosure">Session &amp; Disclosure ({{ category_counts['Session & Disclosure'] }})</button>
+                    </div>
+
+                    <!-- Severity Filter Pills (Only severities emitted by checks: High, Medium, Low, Info) -->
+                    <div class="filter-pills-row" id="severity-filters">
+                        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-right: 4px;">Severity:</span>
+                        <button type="button" class="filter-pill active" data-severity="all">All</button>
+                        <button type="button" class="filter-pill" data-severity="High">High (1)</button>
+                        <button type="button" class="filter-pill" data-severity="Medium">Medium (4)</button>
+                        <button type="button" class="filter-pill" data-severity="Low">Low (8)</button>
+                        <button type="button" class="filter-pill" data-severity="Info">Info (5)</button>
+                    </div>
+                </div>
+
+                <!-- Scannable List of 18 Checks -->
+                <div class="checks-scannable-list" id="checks-list">
+                    {% for check in checks %}
+                    <article class="check-row-card" id="{{ check.id|lower }}" data-check-id="{{ check.id }}" data-category="{{ check.high_level_category }}" data-severity="{{ check.severity }}">
+                        <div class="check-row-header" tabindex="0" role="button" aria-expanded="false" aria-controls="pane-{{ check.id|lower }}">
+                            <div class="check-header-left">
+                                <span class="check-id-badge">{{ check.id }}</span>
+                                <span class="check-name">{{ check.name }}</span>
+                            </div>
+                            <div class="check-header-right">
+                                <span class="cwe-chip">{{ check.cwe }}</span>
+                                {% if check.severity == 'High' %}
+                                <span class="badge badge-high">HIGH</span>
+                                {% elif check.severity == 'Medium' %}
+                                <span class="badge badge-medium">MEDIUM</span>
+                                {% elif check.severity == 'Low' %}
+                                <span class="badge badge-low">LOW</span>
+                                {% else %}
+                                <span class="badge badge-info">INFO</span>
+                                {% endif %}
+                                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Expandable In-Place Pane -->
+                        <div class="check-details-pane" id="pane-{{ check.id|lower }}">
+                            <div class="check-details-grid">
+                                <div class="detail-block">
+                                    <h4>Why It Matters</h4>
+                                    <p>{{ check.why_it_matters }}</p>
+                                </div>
+                                <div class="detail-block">
+                                    <h4>Evaluation Criteria</h4>
+                                    <p>{{ check.how_evaluated }}</p>
+                                    <div style="margin-top: 8px;">
+                                        <span class="cwe-chip" style="margin-right: 6px;">{{ check.cwe }}</span>
+                                        <span class="cwe-chip">{{ check.owasp }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if check.remediation %}
+                            <div class="remediation-tabs-wrap">
+                                <div class="remediation-tab-bar">
+                                    <button type="button" class="rem-tab-btn active" data-tab="nginx-{{ check.id }}">Nginx</button>
+                                    <button type="button" class="rem-tab-btn" data-tab="apache-{{ check.id }}">Apache</button>
+                                    <button type="button" class="rem-tab-btn" data-tab="express-{{ check.id }}">Node / Express</button>
+                                </div>
+                                <div class="rem-tab-content">
+                                    <pre class="rem-code-block" id="nginx-{{ check.id }}"><code>{{ check.remediation.nginx }}</code></pre>
+                                    <pre class="rem-code-block" id="apache-{{ check.id }}" style="display: none;"><code>{{ check.remediation.apache }}</code></pre>
+                                    <pre class="rem-code-block" id="express-{{ check.id }}" style="display: none;"><code>{{ check.remediation.express }}</code></pre>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- 4. HOW SCORING WORKS -->
+            <section id="scoring" class="about-section">
+                <div class="eyebrow"><span class="eyebrow-dot"></span>MATHEMATICAL MODEL</div>
+                <h2 class="about-section-h2">How Posture Scoring Works</h2>
+                <p class="about-section-desc">
+                    CyberRecon implements the <strong>{{ score_version }}</strong> posture scoring engine. Rather than using naive flat penalties that cause minor findings to collapse an assessment, the platform applies <em>diminishing returns</em> and domain category caps.
+                </p>
+
+                <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--text-primary);">Severity Deduction Matrix</h3>
+                    <div class="data-table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>SEVERITY</th>
+                                    <th>1ST OCCURRENCE</th>
+                                    <th>2ND OCCURRENCE</th>
+                                    <th>3RD+ OCCURRENCE</th>
+                                    <th>CATEGORY CAP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge badge-high">HIGH</span></td>
+                                    <td class="tabular">-20 pts</td>
+                                    <td class="tabular">-15 pts</td>
+                                    <td class="tabular">-10 pts</td>
+                                    <td class="tabular">25 pts (Transport)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-medium">MEDIUM</span></td>
+                                    <td class="tabular">-8 pts</td>
+                                    <td class="tabular">-6 pts</td>
+                                    <td class="tabular">-4 pts</td>
+                                    <td class="tabular">35 pts (Browser)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-low">LOW</span></td>
+                                    <td class="tabular">-3 pts</td>
+                                    <td class="tabular">-2 pts</td>
+                                    <td class="tabular">-1 pt</td>
+                                    <td class="tabular">20 pts (Session)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-info">INFO</span></td>
+                                    <td class="tabular">0 pts</td>
+                                    <td class="tabular">0 pts</td>
+                                    <td class="tabular">0 pts</td>
+                                    <td class="tabular">15 pts (Cross-Origin)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Interactive What-If Simulator -->
+                <div class="score-sim-card">
+                    <h3 style="font-size: 16px; margin-bottom: 6px; color: var(--text-primary);">Interactive "What-If" Posture Calculator</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+                        Adjust finding counts to see how the mathematical model calculates the overall posture score and letter grade in real time.
+                    </p>
+
+                    <div class="score-sim-grid">
+                        <div style="text-align: center;">
+                            <div class="posture-ring-wrap" style="--ring-size: 130px; --ring-color: var(--color-mint);" id="sim-ring">
+                                <svg class="posture-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+                                    <circle class="posture-ring-track" cx="50" cy="50" r="45"></circle>
+                                    <circle class="posture-ring-fill" id="sim-ring-fill" cx="50" cy="50" r="45" style="stroke-dashoffset: 0;"></circle>
+                                </svg>
+                                <div class="posture-ring-center">
+                                    <span class="posture-ring-grade" id="sim-grade">A</span>
+                                    <span class="posture-ring-score tabular" id="sim-score">100<span style="font-size: 10px; opacity: 0.6;">/100</span></span>
+                                </div>
+                            </div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--color-mint); margin-top: 6px;" id="sim-label">Optimal Posture</div>
+                        </div>
+
+                        <div>
+                            <div class="sim-slider-row">
+                                <span class="sim-label"><span class="badge badge-high" style="margin-right: 6px;">HIGH</span> Findings:</span>
+                                <input type="range" min="0" max="1" value="0" class="sim-slider" id="slider-high">
+                                <span class="sim-count" id="count-high">0</span>
+                            </div>
+                            <div class="sim-slider-row">
+                                <span class="sim-label"><span class="badge badge-medium" style="margin-right: 6px;">MEDIUM</span> Findings:</span>
+                                <input type="range" min="0" max="4" value="0" class="sim-slider" id="slider-med">
+                                <span class="sim-count" id="count-med">0</span>
+                            </div>
+                            <div class="sim-slider-row">
+                                <span class="sim-label"><span class="badge badge-low" style="margin-right: 6px;">LOW</span> Findings:</span>
+                                <input type="range" min="0" max="8" value="0" class="sim-slider" id="slider-low">
+                                <span class="sim-count" id="count-low">0</span>
+                            </div>
+                            <div class="sim-slider-row">
+                                <span class="sim-label"><span class="badge badge-info" style="margin-right: 6px;">INFO</span> Findings:</span>
+                                <input type="range" min="0" max="5" value="0" class="sim-slider" id="slider-info">
+                                <span class="sim-count" id="count-info">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. RESPONSIBLE USE & SSRF -->
+            <section id="responsible-use" class="about-section">
+                <div class="eyebrow"><span class="eyebrow-dot"></span>OPERATIONAL ETHICS</div>
+                <h2 class="about-section-h2">Responsible Use &amp; Safeguards</h2>
+                <p class="about-section-desc">
+                    CyberRecon operates under strict ethical guidelines. We provide defensive clarity without introducing risk to assessed targets.
+                </p>
+
+                <div class="responsible-use-grid">
+                    <div class="resp-column">
+                        <div class="resp-col-title" style="color: var(--color-mint);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            What CyberRecon Does
+                        </div>
+                        <ul class="resp-list">
+                            <li><span>✓</span> Inspects public TLS certificates and cipher suites</li>
+                            <li><span>✓</span> Evaluates defensive HTTP headers (CSP, HSTS, XFO)</li>
+                            <li><span>✓</span> Analyzes cookie security flags (Secure, HttpOnly, SameSite)</li>
+                            <li><span>✓</span> Performs authoritative forward DNS lookup</li>
+                            <li><span>✓</span> Requires confirmed authorization before assessment</li>
+                        </ul>
+                    </div>
+
+                    <div class="resp-column">
+                        <div class="resp-col-title" style="color: var(--sev-critical);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            What It Never Does
+                        </div>
+                        <ul class="resp-list">
+                            <li><span>✕</span> Never injects active exploit payloads or SQL injection</li>
+                            <li><span>✕</span> Never executes credential brute-forcing or dictionary attacks</li>
+                            <li><span>✕</span> Never performs port scanning, service fuzzing, or path discovery</li>
+                            <li><span>✕</span> Never stresses or degrades target infrastructure</li>
+                            <li><span>✕</span> Never transmits target data to external services</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- SSRF Safeguard Block -->
+                <div class="ssrf-block">
+                    <h3 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+                        Server-Side Request Forgery (SSRF) Protection
+                    </h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+                        To protect internal and cloud environments, CyberRecon enforces mandatory kernel-level and DNS resolution checks that unconditionally block restricted network ranges:
+                    </p>
+                    <div class="ssrf-chips">
+                        <span class="ssrf-chip">127.0.0.0/8 (Loopback)</span>
+                        <span class="ssrf-chip">10.0.0.0/8 (RFC 1918)</span>
+                        <span class="ssrf-chip">172.16.0.0/12 (RFC 1918)</span>
+                        <span class="ssrf-chip">192.168.0.0/16 (RFC 1918)</span>
+                        <span class="ssrf-chip">169.254.0.0/16 (Link-Local)</span>
+                        <span class="ssrf-chip">169.254.169.254 (Cloud Metadata)</span>
+                        <span class="ssrf-chip">::1/128 (IPv6 Loopback)</span>
+                        <span class="ssrf-chip">fc00::/7 (IPv6 ULA)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. FREQUENTLY ASKED QUESTIONS -->
+            <section id="faq" class="about-section">
+                <div class="eyebrow"><span class="eyebrow-dot"></span>FREQUENTLY ASKED QUESTIONS</div>
+                <h2 class="about-section-h2">Questions &amp; Answers</h2>
+                <p class="about-section-desc">
+                    Key questions regarding scanning legality, data isolation, and configuration best practices.
+                </p>
+
+                <div class="faq-accordion-group">
+                    <div class="faq-item">
+                        <button type="button" class="faq-question-btn" aria-expanded="false">
+                            <span>Is passive security reconnaissance legal?</span>
+                            <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="faq-answer-pane">
+                            Yes, when conducted against systems you own or have explicit authorization to assess. CyberRecon performs strictly non-intrusive evaluations by requesting standard HTTP headers, inspecting public TLS certificates, and querying authoritative DNS records without injecting exploit payloads or bypassing access controls.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button type="button" class="faq-question-btn" aria-expanded="false">
+                            <span>What counts as strictly passive evaluation?</span>
+                            <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="faq-answer-pane">
+                            Passive reconnaissance does not probe for software vulnerabilities, inject malicious payloads, brute-force credentials, fuzz URI paths, or stress server infrastructure. It observes public responses and configurations returned in standard HTTP/HTTPS handshakes.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button type="button" class="faq-question-btn" aria-expanded="false">
+                            <span>Are assessment targets or scan results stored externally?</span>
+                            <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="faq-answer-pane">
+                            No. CyberRecon operates as a self-contained application. All scan records, configuration audits, and historical diffs are stored exclusively in your local database, isolated strictly to your authenticated user account.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button type="button" class="faq-question-btn" aria-expanded="false">
+                            <span>Why was my target hostname or IP address blocked?</span>
+                            <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="faq-answer-pane">
+                            CyberRecon enforces mandatory Server-Side Request Forgery (SSRF) boundary safeguards. Requests to loopback addresses (127.0.0.1, localhost), private RFC 1918 subnets (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), link-local ranges (169.254.0.0/16), and cloud metadata endpoints are unconditionally blocked before any socket connection is opened.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button type="button" class="faq-question-btn" aria-expanded="false">
+                            <span>How is the security posture grade and numerical score calculated?</span>
+                            <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="faq-answer-pane">
+                            Every assessment begins at 100 points. Penalties are calculated using a diminishing-returns model (High 20 points, Medium 8/6/4 points, Low 3/2/1 points, Info 0 points) with category caps so multiple minor misconfigurations do not unfairly collapse your score. Letter grades map cleanly: A (90-100), B (80-89), C (70-79), D (60-69), and F (below 60).
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. CTA BAND -->
+            <section class="landing-final-cta" style="padding-top: var(--space-8);">
+                <a href="{{ url_for('new_assessment') if current_user_id else url_for('home') }}" class="btn-primary final-cta-btn">
+                    Run Your First Assessment &rarr;
+                </a>
+            </section>
+
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Scroll-Spy for Table of Contents
+    var sections = document.querySelectorAll('.about-section');
+    var navLinks = document.querySelectorAll('.toc-link');
+
+    function highlightTOC() {
+        var scrollPos = window.scrollY + 140;
+        sections.forEach(function (sec) {
+            var top = sec.offsetTop;
+            var height = sec.offsetHeight;
+            var id = sec.getAttribute('id');
+            if (scrollPos >= top && scrollPos < top + height) {
+                navLinks.forEach(function (link) {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+    window.addEventListener('scroll', highlightTOC, { passive: true });
+
+    // 2. Expand-In-Place Checks
+    var checkHeaders = document.querySelectorAll('.check-row-header');
+    checkHeaders.forEach(function (header) {
+        header.addEventListener('click', function () {
+            var card = header.closest('.check-row-card');
+            var isExpanded = card.classList.contains('expanded');
+            card.classList.toggle('expanded');
+            header.setAttribute('aria-expanded', !isExpanded);
+        });
+        header.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                header.click();
+            }
+        });
+    });
+
+    // Deep-link check hash on load (#cr-004)
+    if (window.location.hash) {
+        var targetEl = document.querySelector(window.location.hash);
+        if (targetEl && targetEl.classList.contains('check-row-card')) {
+            targetEl.classList.add('expanded');
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // 3. Remediation Code Tabs
+    var tabBtns = document.querySelectorAll('.rem-tab-btn');
+    tabBtns.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var wrap = btn.closest('.remediation-tabs-wrap');
+            var targetId = btn.getAttribute('data-tab');
+            wrap.querySelectorAll('.rem-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+            wrap.querySelectorAll('.rem-code-block').forEach(function (p) { p.style.display = 'none'; });
+            btn.classList.add('active');
+            var targetPre = document.getElementById(targetId);
+            if (targetPre) targetPre.style.display = 'block';
+        });
+    });
+
+    // 4. Check Filtering & Search
+    var searchInput = document.getElementById('catalog-search');
+    var catPills = document.querySelectorAll('#category-filters .filter-pill');
+    var sevPills = document.querySelectorAll('#severity-filters .filter-pill');
+    var checkCards = document.querySelectorAll('.check-row-card');
+
+    var currentCat = 'all';
+    var currentSev = 'all';
+    var currentQuery = '';
+
+    function filterCatalog() {
+        checkCards.forEach(function (card) {
+            var checkCat = card.getAttribute('data-category');
+            var checkSev = card.getAttribute('data-severity');
+            var text = card.textContent.toLowerCase();
+
+            var matchesCat = (currentCat === 'all' || checkCat === currentCat);
+            var matchesSev = (currentSev === 'all' || checkSev === currentSev);
+            var matchesSearch = (!currentQuery || text.indexOf(currentQuery) !== -1);
+
+            if (matchesCat && matchesSev && matchesSearch) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            currentQuery = searchInput.value.toLowerCase().trim();
+            filterCatalog();
+        });
+    }
+
+    catPills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+            catPills.forEach(function (p) { p.classList.remove('active'); });
+            pill.classList.add('active');
+            currentCat = pill.getAttribute('data-category');
+            filterCatalog();
+        });
+    });
+
+    sevPills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+            sevPills.forEach(function (p) { p.classList.remove('active'); });
+            pill.classList.add('active');
+            currentSev = pill.getAttribute('data-severity');
+            filterCatalog();
+        });
+    });
+
+    // 5. Interactive What-If Score Calculator
+    var slHigh = document.getElementById('slider-high');
+    var slMed = document.getElementById('slider-med');
+    var slLow = document.getElementById('slider-low');
+    var slInfo = document.getElementById('slider-info');
+
+    var cntHigh = document.getElementById('count-high');
+    var cntMed = document.getElementById('count-med');
+    var cntLow = document.getElementById('count-low');
+    var cntInfo = document.getElementById('count-info');
+
+    var simScore = document.getElementById('sim-score');
+    var simGrade = document.getElementById('sim-grade');
+    var simLabel = document.getElementById('sim-label');
+    var simFill = document.getElementById('sim-ring-fill');
+    var simRing = document.getElementById('sim-ring');
+
+    function updateSim() {
+        var h = parseInt(slHigh.value, 10);
+        var m = parseInt(slMed.value, 10);
+        var l = parseInt(slLow.value, 10);
+        var i = parseInt(slInfo.value, 10);
+
+        cntHigh.textContent = h;
+        cntMed.textContent = m;
+        cntLow.textContent = l;
+        cntInfo.textContent = i;
+
+        var hPen = h * 20;
+        var mPen = 0;
+        for (var mi = 0; mi < m; mi++) {
+            mPen += (mi === 0 ? 8 : (mi === 1 ? 6 : 4));
+        }
+        var lPen = 0;
+        for (var li = 0; li < l; li++) {
+            lPen += (li === 0 ? 3 : (li === 1 ? 2 : 1));
+        }
+
+        var totalDeduction = hPen + mPen + lPen;
+        var score = Math.max(0, Math.min(100, 100 - totalDeduction));
+
+        var grade = 'F';
+        var label = 'Critical Deficiencies';
+        var color = 'var(--sev-critical)';
+
+        if (score >= 90) { grade = 'A'; label = 'Optimal Posture'; color = 'var(--sev-pass)'; }
+        else if (score >= 80) { grade = 'B'; label = 'Good Posture'; color = 'var(--color-cyan)'; }
+        else if (score >= 70) { grade = 'C'; label = 'Fair Posture'; color = 'var(--sev-medium)'; }
+        else if (score >= 60) { grade = 'D'; label = 'Elevated Risk'; color = 'var(--sev-high)'; }
+
+        simScore.innerHTML = score + '<span style="font-size: 10px; opacity: 0.6;">/100</span>';
+        simGrade.textContent = grade;
+        simLabel.textContent = label;
+        simLabel.style.color = color;
+        simRing.style.setProperty('--ring-color', color);
+
+        var circumference = 283;
+        var offset = circumference - ((score / 100) * circumference);
+        simFill.style.strokeDashoffset = offset;
+    }
+
+    [slHigh, slMed, slLow, slInfo].forEach(function (slider) {
+        if (slider) slider.addEventListener('input', updateSim);
+    });
+
+    // 6. Accessible FAQ Accordion
+    var faqBtns = document.querySelectorAll('.faq-question-btn');
+    faqBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var item = btn.closest('.faq-item');
+            var isOpen = item.classList.contains('open');
+            // Close others
+            document.querySelectorAll('.faq-item').forEach(function (it) {
+                it.classList.remove('open');
+                it.querySelector('.faq-question-btn').setAttribute('aria-expanded', 'false');
+            });
+            if (!isOpen) {
+                item.classList.add('open');
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
