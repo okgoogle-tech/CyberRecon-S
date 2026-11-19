@@ -17,6 +17,8 @@
 </div>
 
 <div class="landing-page-wrap">
+    <!-- Fixed Mint Scroll Progress Bar -->
+    <div id="scroll-progress-bar" class="scroll-progress-bar" aria-hidden="true"></div>
 
     <!-- =====================================================
          HERO SECTION (Centered, One Column, Max Width 720px)
@@ -24,11 +26,11 @@
     <section class="landing-hero-wrap" aria-labelledby="hero-heading">
         <div class="landing-hero-content">
             {% if current_user_id %}
-            <div class="hero-auth-shortcut">
+            <!-- <div class="hero-auth-shortcut">
                 <a href="{{ url_for('dashboard') }}" class="btn-ghost" style="padding: 4px 14px; font-size: 12px; border-radius: 9999px;">
                     &larr; Back to Dashboard
                 </a>
-            </div>
+            </div> -->
             {% endif %}
 
             <!-- 1. Small Pill (28px tall, 12px text, pulsing dot) -->
@@ -57,23 +59,16 @@
                         {{ ui.icon('globe', 20) }}
                     </span>
 
-                    <input
-                        type="text"
-                        id="target"
-                        name="target"
-                        class="hero-input-field mono"
-                        placeholder="example.com or https://example.com"
-                        value="{{ target or '' }}"
-                        autocomplete="off"
-                        spellcheck="false"
-                        required
-                        aria-label="Target hostname or URL"
-                        aria-describedby="hero-inline-error"
-                    >
+                    <input type="text" id="target" name="target" class="hero-input-field mono"
+                        placeholder="example.com or https://example.com" value="{{ target or '' }}" autocomplete="off"
+                        spellcheck="false" required aria-label="Target hostname or URL"
+                        aria-describedby="hero-inline-error">
 
                     <button type="submit" id="hero-submit-btn" class="btn-primary hero-submit-btn">
                         <span>Start assessment</span>
-                        <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                             <polyline points="12 5 19 12 12 19"></polyline>
                         </svg>
@@ -83,7 +78,8 @@
                 <!-- Fixed-Height Validation Message Slot (Never visible on first load) -->
                 <div id="hero-inline-error" class="hero-validation-slot" role="alert" aria-live="polite">
                     <div id="hero-error-msg" class="hero-validation-msg" style="display: none;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
                             <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -95,7 +91,8 @@
 
             <!-- 5. Microcopy Line -->
             <p class="hero-microcopy">
-                Passive checks only &middot; Authorization required before every scan &middot; <a href="{{ url_for('about') }}#how-it-works">How it works</a>
+                Passive checks only &middot; Authorization required before every scan &middot; <a
+                    href="{{ url_for('about') }}#how-it-works">How it works</a>
             </p>
         </div>
 
@@ -116,77 +113,108 @@
                         https://cyberrecon.local/dashboard
                     </div>
                     <div class="window-caption">
-                        <span class="sample-badge">DEMO PREVIEW</span>
-                        <span class="simulated-badge">Simulated Output</span>
+                        <span class="sample-badge">Sample data</span>
                     </div>
                 </div>
 
                 <!-- Non-interactive Real-Looking Dashboard Miniature -->
                 <div class="mini-dashboard-preview">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
-                            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--color-mint); letter-spacing: 0.08em; text-transform: uppercase;">Security Command Center</div>
-                            <div style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-primary);">Posture Telemetry</div>
+                            <div
+                                style="font-family: var(--font-mono); font-size: 10px; color: var(--color-mint); letter-spacing: 0.08em; text-transform: uppercase;">
+                                Security Command Center</div>
+                            <div
+                                style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-primary);">
+                                Posture Telemetry</div>
                         </div>
-                        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); background: var(--surface-ink-900); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--hairline);">
+                        <div
+                            style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); background: var(--surface-ink-900); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--hairline);">
                             30d Window
                         </div>
                     </div>
 
                     <!-- Mini Widgets Grid -->
-                    <div style="display: grid; grid-template-columns: 140px 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div
+                        style="display: grid; grid-template-columns: 140px 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                         <!-- Mini Posture Ring -->
-                        <div style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div
+                            style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                             <div class="posture-ring-wrap" style="--ring-size: 70px; --ring-color: var(--color-mint);">
                                 <svg class="posture-ring-svg" viewBox="0 0 100 100" aria-hidden="true">
                                     <circle class="posture-ring-track" cx="50" cy="50" r="45"></circle>
-                                    <circle class="posture-ring-fill" cx="50" cy="50" r="45" style="stroke-dashoffset: 42;"></circle>
+                                    <circle id="mini-ring-fill" class="posture-ring-fill" cx="50" cy="50" r="45"
+                                        style="stroke-dashoffset: 42;"></circle>
                                 </svg>
                                 <div class="posture-ring-center">
                                     <span class="posture-ring-grade" style="font-size: 22px;">A</span>
-                                    <span class="posture-ring-score tabular" style="font-size: 9px;">85/100</span>
+                                    <span class="posture-ring-score tabular" style="font-size: 9px;"
+                                        id="mini-stat-score">85/100</span>
                                 </div>
                             </div>
-                            <span style="font-size: 10px; color: var(--color-mint); font-weight: 600; margin-top: 4px;">Optimal Posture</span>
+                            <span
+                                style="font-size: 10px; color: var(--color-mint); font-weight: 600; margin-top: 4px;">Optimal
+                                Posture</span>
                         </div>
 
                         <!-- Mini Tile 1 -->
-                        <div style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px;">
-                            <div style="font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase;">Assessments</div>
-                            <div style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 2px 0;" class="tabular">14</div>
-                            <div style="font-size: 10px; color: var(--color-mint); font-weight: 600;">&uarr; 100% reachable</div>
+                        <div
+                            style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px;">
+                            <div
+                                style="font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase;">
+                                Assessments</div>
+                            <div id="mini-stat-assessments"
+                                style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 2px 0;"
+                                class="tabular">14</div>
+                            <div style="font-size: 10px; color: var(--color-mint); font-weight: 600;">&uarr; 100%
+                                reachable</div>
                         </div>
 
                         <!-- Mini Tile 2 -->
-                        <div style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px;">
-                            <div style="font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase;">Open Findings</div>
-                            <div style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--sev-medium); margin: 2px 0;" class="tabular">3</div>
+                        <div
+                            style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px;">
+                            <div
+                                style="font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase;">
+                                Open Findings</div>
+                            <div id="mini-stat-findings"
+                                style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--sev-medium); margin: 2px 0;"
+                                class="tabular">3</div>
                             <div style="font-size: 10px; color: var(--text-muted);">2 Medium &middot; 1 Low</div>
                         </div>
 
                         <!-- Mini Tile 3 -->
-                        <div style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px;">
-                            <div style="font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase;">Audited Targets</div>
-                            <div style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--color-cyan); margin: 2px 0;" class="tabular">4</div>
+                        <div
+                            style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 12px;">
+                            <div
+                                style="font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase;">
+                                Audited Targets</div>
+                            <div id="mini-stat-targets"
+                                style="font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--color-cyan); margin: 2px 0;"
+                                class="tabular">4</div>
                             <div style="font-size: 10px; color: var(--color-mint);">All TLS protected</div>
                         </div>
                     </div>
 
                     <!-- Mini Table Rows -->
-                    <div style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 10px 14px; font-family: var(--font-mono); font-size: 11px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--hairline-subtle); padding-bottom: 6px; color: var(--text-muted);">
+                    <div
+                        style="background: var(--surface-ink-900); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 10px 14px; font-family: var(--font-mono); font-size: 11px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--hairline-subtle); padding-bottom: 6px; color: var(--text-muted);">
                             <span>TARGET</span>
                             <span>GRADE</span>
                             <span>FINDINGS</span>
                             <span>STATUS</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--hairline-subtle);">
+                        <div class="mini-table-row mini-row-1"
+                            style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--hairline-subtle);">
                             <span style="color: var(--text-primary);">https://app.example.com</span>
                             <span class="badge badge-pass" style="padding: 1px 6px; font-size: 10px;">GRADE A</span>
                             <span class="tabular text-muted">0 findings</span>
                             <span style="color: var(--color-mint);">Completed</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
+                        <div class="mini-table-row mini-row-2"
+                            style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
                             <span style="color: var(--text-primary);">https://portal.secure.org</span>
                             <span class="badge badge-medium" style="padding: 1px 6px; font-size: 10px;">GRADE B</span>
                             <span class="tabular text-muted">2 findings</span>
@@ -201,9 +229,9 @@
     <!-- =====================================================
          VALUE CARDS (3-column grid at 1024px+, gap 24px)
          ===================================================== -->
-    <section class="landing-values-grid" aria-label="Key Capabilities">
+    <section class="landing-values-grid reveal-on-scroll" aria-label="Key Capabilities">
         <!-- Card 1 -->
-        <article class="value-card">
+        <article class="value-card reveal-child" style="--stagger-index: 0;">
             <div class="value-card-icon" aria-hidden="true">
                 {{ ui.icon('gauge', 20) }}
             </div>
@@ -214,7 +242,7 @@
         </article>
 
         <!-- Card 2 -->
-        <article class="value-card">
+        <article class="value-card reveal-child" style="--stagger-index: 1;">
             <div class="value-card-icon" aria-hidden="true">
                 {{ ui.icon('git-compare', 20) }}
             </div>
@@ -225,7 +253,7 @@
         </article>
 
         <!-- Card 3 -->
-        <article class="value-card">
+        <article class="value-card reveal-child" style="--stagger-index: 2;">
             <div class="value-card-icon" aria-hidden="true">
                 {{ ui.icon('wrench', 20) }}
             </div>
@@ -239,27 +267,30 @@
     <!-- =====================================================
          HOW IT WORKS (Connecting Signal Line Behind Circles)
          ===================================================== -->
-    <section class="landing-how-section" aria-labelledby="how-it-works-title">
+    <section class="landing-how-section reveal-on-scroll" id="how-it-works-section"
+        aria-labelledby="how-it-works-title">
         <h2 id="how-it-works-title" class="sr-only">How CyberRecon Works</h2>
 
         <div class="how-steps-container">
-            <div class="steps-connecting-line" aria-hidden="true"></div>
+            <div class="steps-connecting-line" aria-hidden="true">
+                <div class="steps-line-fill" id="steps-line-fill"></div>
+            </div>
 
             <div class="how-steps-row">
-                <div class="how-step">
-                    <div class="step-circle">01</div>
+                <div class="how-step reveal-child" style="--stagger-index: 0;">
+                    <div class="step-circle" id="step-circle-1">01</div>
                     <h3 class="step-title">Enter target</h3>
                     <p class="step-desc">Input any authorized domain or HTTP/HTTPS web endpoint.</p>
                 </div>
 
-                <div class="how-step">
-                    <div class="step-circle">02</div>
+                <div class="how-step reveal-child" style="--stagger-index: 1;">
+                    <div class="step-circle" id="step-circle-2">02</div>
                     <h3 class="step-title">Passive checks</h3>
                     <p class="step-desc">Evaluate TLS, headers, and cookies without exploit payloads.</p>
                 </div>
 
-                <div class="how-step">
-                    <div class="step-circle">03</div>
+                <div class="how-step reveal-child" style="--stagger-index: 2;">
+                    <div class="step-circle" id="step-circle-3">03</div>
                     <h3 class="step-title">Review and fix</h3>
                     <p class="step-desc">Inspect posture grade and apply copy-paste server snippets.</p>
                 </div>
@@ -270,35 +301,46 @@
     <!-- =====================================================
          PASSIVE BY DESIGN BAND
          ===================================================== -->
-    <section class="passive-band" aria-label="Passive Architecture Assurances">
+    <section class="passive-band reveal-on-scroll" id="passive-band-section"
+        aria-label="Passive Architecture Assurances">
         <div class="passive-items">
-            <div class="passive-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="passive-item reveal-child" style="--stagger-index: 0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline class="check-draw" points="20 6 9 17 4 12"></polyline>
+                </svg>
                 <span>No exploits</span>
             </div>
-            <div class="passive-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="passive-item reveal-child" style="--stagger-index: 1;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline class="check-draw" points="20 6 9 17 4 12"></polyline>
+                </svg>
                 <span>No port scans</span>
             </div>
-            <div class="passive-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="passive-item reveal-child" style="--stagger-index: 2;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline class="check-draw" points="20 6 9 17 4 12"></polyline>
+                </svg>
                 <span>SSRF-protected</span>
             </div>
-            <div class="passive-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="passive-item reveal-child" style="--stagger-index: 3;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline class="check-draw" points="20 6 9 17 4 12"></polyline>
+                </svg>
                 <span>Authorization required</span>
             </div>
         </div>
         <a href="{{ url_for('about') }}#how-it-works" class="methodology-link">
             <span>Read the methodology</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
         </a>
     </section>
 
     <!-- =====================================================
          FINAL CTA CARD (Centered Card with Heading & Button)
          ===================================================== -->
-    <section class="landing-final-cta-card" aria-labelledby="cta-heading">
+    <section class="landing-final-cta-card reveal-on-scroll" id="final-cta-card" aria-labelledby="cta-heading">
         <h2 id="cta-heading" class="final-cta-title">Assess Your First Target</h2>
         <p class="final-cta-desc">
             Launch a non-intrusive reconnaissance assessment across TLS, security headers, and cookie flags in seconds.
@@ -312,113 +354,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var targetInput = document.getElementById('target');
-    var form = document.getElementById('hero-target-form');
-    var errorMsg = document.getElementById('hero-error-msg');
-    var errorText = document.getElementById('hero-error-text');
-    var productShot = document.getElementById('product-shot-window');
-    var scrollBtn = document.getElementById('btn-scroll-hero');
-    var spotlight = document.getElementById('hero-spotlight');
-
-    // 1. Cursor Follow Spotlight
-    if (spotlight) {
-        window.addEventListener('mousemove', function (e) {
-            spotlight.style.setProperty('--mouse-x', e.clientX + 'px');
-            spotlight.style.setProperty('--mouse-y', e.clientY + 'px');
-        }, { passive: true });
-    }
-
-    // 2. Scroll-Linked Tilt-to-Flat Product Shot
-    if (productShot) {
-        window.addEventListener('scroll', function () {
-            var scrollY = window.scrollY;
-            if (scrollY > 50) {
-                productShot.classList.add('flattened');
-            } else {
-                productShot.classList.remove('flattened');
-            }
-        }, { passive: true });
-
-        // Gentle Mouse Parallax on Desktop
-        if (window.innerWidth > 1024) {
-            window.addEventListener('mousemove', function (e) {
-                var x = (e.clientX / window.innerWidth) - 0.5;
-                var y = (e.clientY / window.innerHeight) - 0.5;
-                if (!productShot.classList.contains('flattened')) {
-                    productShot.style.transform = 'rotateX(' + (18 - y * 6) + 'deg) rotateY(' + (x * 6) + 'deg) scale(0.97)';
-                }
-            }, { passive: true });
-        }
-    }
-
-    // 3. Validation Logic (Strictly on type, blur, or submit — NEVER on load!)
-    var hasInteracted = false;
-
-    function validateInput(val) {
-        if (!val || !val.trim()) {
-            return "Please enter a valid public hostname or HTTP/HTTPS URL.";
-        }
-        var clean = val.trim();
-        if (/^(ftp|file|gopher|javascript|data):/i.test(clean)) {
-            return "Only HTTP and HTTPS targets are supported.";
-        }
-        if (/localhost|127\.0\.0\.1|169\.254\.|10\.|192\.168\./i.test(clean)) {
-            return "Private, loopback, and metadata endpoints are blocked for safety.";
-        }
-        return null;
-    }
-
-    function showError(msg) {
-        if (!errorMsg || !errorText) return;
-        errorText.textContent = msg;
-        errorMsg.style.display = 'inline-flex';
-    }
-
-    function hideError() {
-        if (!errorMsg) return;
-        errorMsg.style.display = 'none';
-    }
-
-    if (targetInput) {
-        targetInput.addEventListener('input', function () {
-            hasInteracted = true;
-            var err = validateInput(this.value);
-            if (err) {
-                showError(err);
-            } else {
-                hideError();
-            }
-        });
-
-        targetInput.addEventListener('blur', function () {
-            if (hasInteracted && this.value) {
-                var err = validateInput(this.value);
-                if (err) showError(err); else hideError();
-            }
-        });
-    }
-
-    if (form) {
-        form.addEventListener('submit', function (e) {
-            hasInteracted = true;
-            var val = targetInput ? targetInput.value : '';
-            var err = validateInput(val);
-            if (err) {
-                e.preventDefault();
-                showError(err);
-                if (targetInput) targetInput.focus();
-            }
-        });
-    }
-
-    if (scrollBtn && targetInput) {
-        scrollBtn.addEventListener('click', function () {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            setTimeout(function () { targetInput.focus(); }, 400);
-        });
-    }
-});
-</script>
+<script src="{{ versioned_static('js/landing-animations.js') }}"></script>
 {% endblock %}

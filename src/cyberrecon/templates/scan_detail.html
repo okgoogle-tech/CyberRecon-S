@@ -53,7 +53,7 @@
             </div>
         </div>
 
-        <!-- Action Bar -->
+        <!-- Action Bar with Download Split Button -->
         <div class="report-actions-bar">
             <a href="{{ url_for('new_assessment', target=scan.target) }}" class="btn-primary" style="padding: 8px 16px; font-size: 13px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
@@ -67,15 +67,35 @@
             </a>
             {% endif %}
 
-            <a href="{{ url_for('export_assessment_json', scan_id=scan.scan_id) }}" class="btn-subtle" style="padding: 8px 12px; font-size: 13px;" title="Export assessment JSON data">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                JSON
-            </a>
-
-            <button type="button" onclick="window.print()" class="btn-subtle" style="padding: 8px 12px; font-size: 13px;" title="Print or save as PDF">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                PDF
-            </button>
+            <!-- Download Split Button -->
+            <div class="download-split-btn-group" id="download-group" style="position: relative; display: inline-flex; align-items: stretch;">
+                <a href="{{ url_for('export_assessment_pdf', scan_id=scan.scan_id) }}" id="btn-download-primary" class="btn-subtle download-primary-btn" style="padding: 8px 12px; font-size: 13px; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none;" title="Download PDF Report" download>
+                    <svg class="dl-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span class="dl-spinner" style="display: none; width: 14px; height: 14px; border: 2px solid var(--text-dim); border-top-color: var(--color-mint); border-radius: 50%; animation: spin 0.6s linear infinite;" aria-hidden="true"></span>
+                    <span class="dl-label" style="margin-left: 6px;">Download PDF</span>
+                </a>
+                <button type="button" id="btn-download-dropdown-toggle" class="btn-subtle download-caret-btn" aria-haspopup="true" aria-expanded="false" aria-label="Export options" style="padding: 8px 8px; font-size: 13px; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="download-dropdown-menu" id="download-dropdown-menu" role="menu" style="display: none; position: absolute; right: 0; top: calc(100% + 6px); background: var(--surface-ink-900); border: 1px solid var(--hairline-strong); border-radius: var(--radius-md); box-shadow: 0 12px 30px rgba(0,0,0,0.5); z-index: 100; min-width: 180px; padding: 6px 0;">
+                    <a href="{{ url_for('export_assessment_pdf', scan_id=scan.scan_id) }}" class="download-menu-item" role="menuitem" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-primary); text-decoration: none;" download>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                        <span>PDF Report</span>
+                    </a>
+                    <a href="{{ url_for('export_assessment_json', scan_id=scan.scan_id) }}" class="download-menu-item" role="menuitem" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-primary); text-decoration: none;" download>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        <span>JSON Payload</span>
+                    </a>
+                    <a href="{{ url_for('export_assessment_csv', scan_id=scan.scan_id) }}" class="download-menu-item" role="menuitem" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-primary); text-decoration: none;" download>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
+                        <span>CSV Findings</span>
+                    </a>
+                    <a href="{{ url_for('assessment_report', scan_id=scan.scan_id) }}" class="download-menu-item" role="menuitem" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-primary); text-decoration: none;" download>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                        <span>Standalone HTML</span>
+                    </a>
+                </div>
+            </div>
 
             <!-- Delete Trigger -->
             <button type="button" id="btn-open-delete-modal" class="btn-subtle" style="padding: 8px 12px; font-size: 13px; color: var(--sev-critical);" title="Delete this assessment">
@@ -352,11 +372,67 @@ document.addEventListener('DOMContentLoaded', function () {
             modal.style.display = 'flex';
         });
     }
-    if (cancelBtn && modal) {
-        cancelBtn.addEventListener('click', function () {
-            modal.style.display = 'none';
+    // 5. Download Split Button & Dropdown Interactions
+    var dlToggle = document.getElementById('btn-download-dropdown-toggle');
+    var dlMenu = document.getElementById('download-dropdown-menu');
+    var dlPrimary = document.getElementById('btn-download-primary');
+    var dlGroup = document.getElementById('download-group');
+
+    function toggleDownloadMenu(show) {
+        if (!dlMenu || !dlToggle) return;
+        var willOpen = (show !== undefined) ? show : (dlMenu.style.display !== 'block');
+        dlMenu.style.display = willOpen ? 'block' : 'none';
+        dlToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    }
+
+    if (dlToggle && dlMenu) {
+        dlToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toggleDownloadMenu();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (dlGroup && !dlGroup.contains(e.target)) {
+                toggleDownloadMenu(false);
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && dlMenu.style.display === 'block') {
+                toggleDownloadMenu(false);
+                dlToggle.focus();
+            }
         });
     }
+
+    // Download Spinner and Toast
+    function triggerDownloadFeedback(btn) {
+        if (!dlPrimary) return;
+        var spinner = dlPrimary.querySelector('.dl-spinner');
+        var icon = dlPrimary.querySelector('.dl-icon');
+        if (spinner && icon) {
+            spinner.style.display = 'inline-block';
+            icon.style.display = 'none';
+            setTimeout(function () {
+                spinner.style.display = 'none';
+                icon.style.display = 'inline-block';
+            }, 2500);
+        }
+        toggleDownloadMenu(false);
+    }
+
+    if (dlPrimary) {
+        dlPrimary.addEventListener('click', function () {
+            triggerDownloadFeedback(this);
+        });
+    }
+
+    var menuItems = document.querySelectorAll('.download-menu-item');
+    menuItems.forEach(function (item) {
+        item.addEventListener('click', function () {
+            triggerDownloadFeedback(this);
+        });
+    });
 });
 
 function copyRemediation(btn) {

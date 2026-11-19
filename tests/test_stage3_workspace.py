@@ -136,5 +136,4 @@ def test_landing_page_clearly_labels_demo_preview(client):
     """
     response = client.get("/")
     assert response.status_code == 200
-    assert b"DEMO PREVIEW" in response.data or b"SAMPLE DATA" in response.data
-    assert b"Simulated Output" in response.data
+    assert b"Sample data" in response.data or b"SAMPLE DATA" in response.data

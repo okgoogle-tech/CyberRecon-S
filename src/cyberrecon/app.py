@@ -28,6 +28,11 @@ from werkzeug.security import (
 from cyberrecon.scanner.assessment import run_assessment
 from cyberrecon.scanner.comparison import compare_assessments
 from cyberrecon.scanner.security_analysis import SECURITY_CHECK_COUNT
+from cyberrecon.scanner.export import (
+    sanitize_export_filename,
+    generate_csv_report,
+    generate_pdf_report,
+)
 from cyberrecon.scanner.scoring import (
     CHECK_REGISTRY,
     CATEGORY_CAPS,
@@ -910,16 +915,10 @@ def create_app(test_config=None):
                 session["user_id"],
             )
 
-            if request.form.get("prg") == "1" or request.args.get("prg") == "1":
-                return redirect(
-                    url_for(
-                        "canonical_assessment_report",
-                        scan_id=assessment["metadata"]["scan_id"],
-                    )
-                )
-
+            # Render results template with saved assessment
             return render_template(
                 "results.html",
+                assessment=assessment,
                 **assessment,
             )
 
@@ -1179,29 +1178,89 @@ def create_app(test_config=None):
         user_id = session["user_id"]
         stored_assessment = get_scan_by_id(scan_id, user_id)
         if not stored_assessment:
-            return jsonify({"error": "Assessment not found"}), 404
+            return render_template("404.html", resource="Assessment"), 404
 
         findings = stored_assessment["findings"]
         posture_data = calculate_posture_score(findings)
+        scan = stored_assessment["scan"]
 
         payload = {
             "scan_id": scan_id,
-            "target": stored_assessment["scan"]["target"],
-            "metadata": stored_assessment["scan"],
+            "target": scan.get("target"),
+            "metadata": scan,
             "posture": posture_data,
             "findings": findings,
             "exported_at": datetime.now(timezone.utc).isoformat(),
         }
         res = jsonify(payload)
-        res.headers["Content-Disposition"] = f'attachment; filename="CyberRecon_{scan_id}.json"'
+        filename = sanitize_export_filename(
+            scan.get("target", ""),
+            scan_id,
+            scan.get("timestamp") or scan.get("started_at", ""),
+            "json",
+        )
+        res.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+        res.headers["Content-Type"] = "application/json"
         return res
 
+    @app.route("/assessments/<scan_id>/export.pdf")
+    @login_required
+    def export_assessment_pdf(scan_id):
+        """Download assessment report as native PDF."""
+        user_id = session["user_id"]
+        stored_assessment = get_scan_by_id(scan_id, user_id)
+        if not stored_assessment:
+            return render_template("404.html", resource="Assessment"), 404
+
+        scan = stored_assessment["scan"]
+        findings = stored_assessment["findings"]
+        posture_data = calculate_posture_score(findings)
+
+        pdf_bytes = generate_pdf_report(scan, findings, posture_data)
+        res = make_response(pdf_bytes)
+        filename = sanitize_export_filename(
+            scan.get("target", ""),
+            scan_id,
+            scan.get("timestamp") or scan.get("started_at", ""),
+            "pdf",
+        )
+        res.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+        res.headers["Content-Type"] = "application/pdf"
+        return res
+
+    @app.route("/assessments/<scan_id>/export.csv")
+    @login_required
+    def export_assessment_csv(scan_id):
+        """Download assessment findings as CSV with formula injection defense."""
+        user_id = session["user_id"]
+        stored_assessment = get_scan_by_id(scan_id, user_id)
+        if not stored_assessment:
+            return render_template("404.html", resource="Assessment"), 404
+
+        scan = stored_assessment["scan"]
+        findings = stored_assessment["findings"]
+        posture_data = calculate_posture_score(findings)
+
+        csv_text = generate_csv_report(scan, findings, posture_data)
+        res = make_response(csv_text)
+        filename = sanitize_export_filename(
+            scan.get("target", ""),
+            scan_id,
+            scan.get("timestamp") or scan.get("started_at", ""),
+            "csv",
+        )
+        res.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+        res.headers["Content-Type"] = "text/csv; charset=utf-8"
+        return res
 
     @app.route("/history/<scan_id>/report")
     @app.route("/assessments/<scan_id>/report")
+    @app.route("/assessments/<scan_id>/export.html")
     @login_required
     def assessment_report(scan_id):
-        stored_assessment = get_scan_by_id(scan_id, session["user_id"])
+        """Download standalone HTML assessment report."""
+        user_id = session["user_id"]
+        stored_assessment = get_scan_by_id(scan_id, user_id)
         if stored_assessment is None:
             return render_template("404.html", resource="Report"), 404
 
@@ -1223,7 +1282,12 @@ def create_app(test_config=None):
         )
 
         response = make_response(rendered_report)
-        filename = f"CyberRecon_{scan_id}_Report.html"
+        filename = sanitize_export_filename(
+            scan_data.get("target", ""),
+            scan_id,
+            scan_data.get("timestamp") or scan_data.get("started_at", ""),
+            "html",
+        )
         response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
         response.headers["Content-Type"] = "text/html; charset=utf-8"
         return response
